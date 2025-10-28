@@ -44,3 +44,51 @@ A Next.js app that allows users to upload PDF documents and chat with an AI assi
 
 ### Installation
 
+
+### Configuration
+
+Create a `.env.local` file in the root directory with the following content:
+
+NEXT_PUBLIC_OPENAI_API_KEY=your_openai_api_key
+NEXT_PUBLIC_MISTRAL_API_KEY=your_mistral_api_key
+PINECONE_API_KEY=your_pinecone_key
+PINECONE_ENV=your_pinecone_environment
+
+
+### Running the App
+
+bun dev
+
+
+Open your browser at [http://localhost:3000/chat](http://localhost:3000/chat) to use the app.
+
+---
+
+## Usage
+
+1. Upload one or more PDF documents using the file input.
+2. Ask questions in the chat input related to the documents.
+3. View AI-generated answers with references to the source content.
+4. Extend the app with live web search or additional AI agents as needed.
+
+---
+
+## Contributing
+
+Contributions, issues, and feature requests are welcome! Feel free to fork the repo and submit pull requests.
+
+---
+
+## License
+
+This project is licensed under the MIT License.
+
+---
+
+## Acknowledgments
+
+- Inspired by agentic AI workflows and RAG techniques.
+- Thanks to OpenAI, Mistral, LangChain, and the AI SDK communities.
+- Built with Next.js and Tailwind CSS.
+
+---
