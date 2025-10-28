@@ -19,8 +19,8 @@ A Next.js app that allows users to upload PDF documents and chat with an AI assi
 - Frontend: Next.js (React) with Tailwind CSS
 - Backend: Next.js API Routes with TypeScript
 - AI APIs: OpenAI, Mistral via AI SDK
-- Agent & RAG: LangChain or Haystack (optional)
-- Vector DB: Pinecone or Weaviate for fast embedding retrieval
+- Agent & RAG: LangChain 
+- Vector DB: Pinecone for fast embedding retrieval
 - Form handling: react-hook-form with Zod validation
 
 ---
@@ -60,7 +60,7 @@ PINECONE_ENV=your_pinecone_environment
 bun dev
 
 
-Open your browser at [http://localhost:3000/chat](http://localhost:3000/chat) to use the app.
+Open your browser at [http://localhost:3000](http://localhost:3000) to use the app.
 
 ---
 
