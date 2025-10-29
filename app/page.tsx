@@ -29,6 +29,7 @@ export default function DocumentChatPage() {
   const [show, setShow] = useState(true)
   const [files, setFiles] = useState<FileList | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [documentId, setDocumentId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<z.infer<typeof uploadSchema>>({
@@ -39,6 +40,9 @@ export default function DocumentChatPage() {
   const { messages, sendMessage } = useChat({
     transport: new DefaultChatTransport({
       api: '/api/query',
+      body: () => {
+        documentId
+      }
     }),
   });
 
