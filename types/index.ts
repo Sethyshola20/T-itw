@@ -1,4 +1,8 @@
 import { z } from 'zod';
+import type { createDocument } from '@/lib/ai/tools/create-document';
+import type { updateDocument } from '@/lib/ai/tools/update-document';
+
+import type { InferUITool, UIMessage } from 'ai';
 
 export const engineeringDeliverableSchema = z.object({
   projectName: z.string(),
@@ -40,3 +44,66 @@ export const engineeringDeliverableSchema = z.object({
   })).optional(),
   remarks: z.string().optional()
 });
+
+export type EngineeringDeliverableObjectType = z.infer<typeof engineeringDeliverableSchema>
+
+
+
+
+// AUTH
+
+export const signinSchema = z.object({
+  email: z.string().email({ message: "Invalid email address" }),
+  password: z.string().min(8, { message: "Password must be at least 8 characters" }),
+});
+export const signupSchema = z.object({
+  name: z.string().max(20),
+  email: z.string().email({ message: "Invalid email address" }),
+  password: z.string().min(8, { message: "Password must be at least 8 characters" }),
+  confirmPassword: z.string().min(8, { message: "Password must be at least 8 characters" }),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
+
+
+export type SignInFormType = z.infer<typeof signinSchema>
+export type SignupFormType = z.infer<typeof signupSchema>
+export type DataPart = { type: 'append-message'; message: string };
+
+export const messageMetadataSchema = z.object({
+  createdAt: z.string(),
+});
+
+export type MessageMetadata = z.infer<typeof messageMetadataSchema>;
+
+
+type createDocumentTool = InferUITool<ReturnType<typeof createDocument>>;
+type updateDocumentTool = InferUITool<ReturnType<typeof updateDocument>>;
+
+
+export type ChatTools = {
+  createDocument: createDocumentTool;
+  updateDocument: updateDocumentTool;
+};
+
+export type CustomUIDataTypes = {
+  textDelta: string;
+  appendMessage: string;
+  id: string;
+  title: string;
+  clear: null;
+  finish: null;
+};
+
+export type ChatMessage = UIMessage<
+  MessageMetadata,
+  CustomUIDataTypes,
+  ChatTools
+>;
+
+export interface Attachment {
+  name: string;
+  url: string;
+  contentType: string;
+}

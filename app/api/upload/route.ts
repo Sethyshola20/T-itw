@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { generateObject, ModelMessage } from 'ai';
-import { extractTextFromPdf, extractTextFromUrl, parsePdf, saveFile, validateFileType, validatePdfUrl } from '@/helper';
+import { extractTextFromPdf, extractTextFromUrl, parsePdf, saveFile, saveFileFromUrl, validateFileType, validatePdfUrl } from '@/helper';
 import { engineeringDeliverableSchema } from '@/types';
-import { SYSTEM_PROMPT } from '@/constants';
+import { SYSTEM_PROMPT } from '@/lib/constants';
 import { storeEmbeddings } from '@/lib/embeding';
+import { generateUUID } from '@/lib/utils';
 
 
 export async function POST(req: Request) {
@@ -18,15 +19,20 @@ export async function POST(req: Request) {
     }
 
     let documentText = '';
+    let filePath = ''
+    const documentId = generateUUID()
 
     if (file) {
       await validateFileType(file);
       const pdfBuffer = await parsePdf(file);
+      filePath = await saveFile(file, `${documentId}.pdf`);
       documentText = await extractTextFromPdf(pdfBuffer);
     } else if (url) {
-      await validatePdfUrl(url)
+      await validatePdfUrl(url);
+      filePath = await saveFileFromUrl(url, `${documentId}.pdf`);
       documentText = await extractTextFromUrl(url);
     }
+
     const messages: ModelMessage[] = [
       {
         role: "system",
@@ -39,22 +45,21 @@ export async function POST(req: Request) {
         ],
       },
     ];
-    
+
     const result = await generateObject({
       model: 'openai/gpt-4.1',
       system: SYSTEM_PROMPT,
       schema: engineeringDeliverableSchema,
       messages,
     });
-
-    // await saveFile(file)
-    const documentId = crypto.randomUUID(); // replace by id from the db storing the pdfs
-
+    
     await storeEmbeddings(documentId, documentText, {
       projectName: result.object.projectName,
       documentType: result.object.documentType,
       engineeringFirm: result.object.engineeringFirm,
+      filePath, 
     });
+
 
     return NextResponse.json({ data: result.object, documentId }, { status: 200 });
   } catch (error) {

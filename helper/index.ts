@@ -6,7 +6,7 @@ import os from 'os';
 import { pipeline } from 'stream/promises';
 import { createWriteStream } from 'fs';
 import { Readable } from 'stream';
-import { ALLOWED_EXTENSIONS, ALLOWED_TYPES } from '@/constants';
+import { ALLOWED_EXTENSIONS, ALLOWED_TYPES } from '@/lib/constants';
 
 export async function validateFileType(file: File): Promise<string> {
   try {
@@ -95,7 +95,7 @@ export async function validateFileHeader(file: File): Promise<boolean> {
 export async function saveFile(file: File, saveAs: string): Promise<string> {
   try {
     const baseDir =
-      os.platform() === 'win32' ? 'D:\\Logspace' : process.cwd();
+      os.platform() === 'win32' ? 'D:\\' : process.cwd();
     const uploadsDir = path.join(baseDir, 'uploads');
     await ensureDirExists(uploadsDir);
 
@@ -114,6 +114,39 @@ export async function saveFile(file: File, saveAs: string): Promise<string> {
     throw new Error(`Failed to save file: ${message}`);
   }
 }
+
+export async function saveFileFromUrl(url: string, saveAs: string): Promise<string> {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`Failed to fetch file: ${response.statusText}`);
+
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('pdf')) {
+      throw new Error(`URL does not point to a valid PDF file. Received: ${contentType}`);
+    }
+
+    if (!response.body) throw new Error('Response has no body.');
+
+    const baseDir = os.platform() === 'win32' ? 'D:\\' : '';
+    const uploadsDir = path.join(baseDir, 'uploads');
+
+    await mkdir(uploadsDir, { recursive: true });
+    
+    const nodeStream = Readable.fromWeb(response.body as any); 
+    const filePath = path.resolve(uploadsDir, saveAs);
+    const fileStream = createWriteStream(filePath);
+    
+    await pipeline(nodeStream, fileStream);
+
+    return filePath; 
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      throw new Error(`Failed to save file from URL: ${error.message}`);
+    }
+    throw new Error('Unknown error occurred while saving file from URL.');
+  }
+}
+
 
 
 export async function ensureDirExists(dir: string): Promise<void> {
