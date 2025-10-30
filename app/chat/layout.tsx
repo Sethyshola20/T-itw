@@ -29,7 +29,7 @@ export default async function Layout({
       />
       <DataStreamProvider>
         <SidebarProvider defaultOpen={false}>
-          <AppSidebar />
+         {/**<AppSidebar /> */} 
           <SidebarInset>{children}</SidebarInset>
         </SidebarProvider>
       </DataStreamProvider>

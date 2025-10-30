@@ -11,29 +11,15 @@ import {
   boolean,
   pgSchema,
 } from 'drizzle-orm/pg-core';
+import { user } from './auth-schema';
 
 export const mySchema = pgSchema("my_schema");
-export const subscription_status = mySchema.enum('subscription_status', ['active', 'none', 'canceled', 'expired']);
-export const plans = mySchema.enum('plan', ['Lifetime','premium','none'])
-
-export const user = pgTable('User', {
-  id: uuid('id').primaryKey().notNull().defaultRandom(),
-  email: varchar('email', { length: 64 }).notNull().unique(),
-  password: varchar('password', { length: 64 }),
-  subscribed: boolean().notNull(),
-  plan: plans('plan').default('none'),
-  subscription_status: subscription_status('subscription_status').default('none'),
-  stripe_subscription_id: varchar('stripe_subscription_id', { length: 64 }),
-  subscription_current_period_end: timestamp()
-});
-
-export type User = InferSelectModel<typeof user>;
 
 export const chat = pgTable('Chat', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   createdAt: timestamp('createdAt').notNull(),
   title: text('title').notNull(),
-  userId: uuid('userId')
+  userId: text('userId')
     .notNull()
     .references(() => user.id),
   visibility: varchar('visibility', { enum: ['public', 'private'] })
@@ -122,7 +108,7 @@ export const document = pgTable(
     kind: varchar('text', { enum: ['text'] })
       .notNull()
       .default('text'),
-    userId: uuid('userId')
+    userId: text('userId')
       .notNull()
       .references(() => user.id),
   },
@@ -145,7 +131,7 @@ export const suggestion = pgTable(
     suggestedText: text('suggestedText').notNull(),
     description: text('description'),
     isResolved: boolean('isResolved').notNull().default(false),
-    userId: uuid('userId')
+    userId: text('userId')
       .notNull()
       .references(() => user.id),
     createdAt: timestamp('createdAt').notNull(),

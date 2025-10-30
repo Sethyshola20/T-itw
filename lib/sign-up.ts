@@ -1,9 +1,10 @@
 import {  SignupFormType, signupSchema } from "@/types";
-import { authClient } from "./auth-client"; //import the auth client
+import { authClient } from "./auth-client"; 
 import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 
 export async function SignUp(authData: SignupFormType){
-    
+    const router = useRouter()
     signupSchema.parse(authData)
     await authClient.signUp.email({
         name:authData.name,
@@ -13,10 +14,11 @@ export async function SignUp(authData: SignupFormType){
         }, {
             onRequest: (ctx) => {
                 //show loading
+                toast.loading("Connection...")
             },
             onSuccess: (ctx) => {
                 //redirect to the dashboard or sign in page
-                
+                router.push("/chat")
             },
             onError: (ctx) => {
                 // display the error message

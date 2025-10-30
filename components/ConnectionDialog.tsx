@@ -23,8 +23,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SignInFormType, signinSchema, SignupFormType, signupSchema } from "@/types";
-import { SignIn } from "@/lib/better-auth/sign-in";
-import { SignUp } from "@/lib/better-auth/sign-up";
+import { SignIn } from "@/lib/sign-in";
+import { SignUp } from "@/lib/sign-up";
 
 export function ConnectionDialog() {
   const loginForm = useForm<SignInFormType>({

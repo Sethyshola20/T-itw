@@ -12,13 +12,10 @@ import {
   lt,
   type SQL,
 } from 'drizzle-orm';
-import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 
 import {
-  user,
   chat,
-  type User,
   document,
   type Suggestion,
   suggestion,
@@ -33,14 +30,14 @@ import { generateUUID } from '../utils';
 
 import type { VisibilityType } from '@/components/ui/visibility-selector';
 import { ChatSDKError } from '../errors';
+import { db } from './drizzle';
+import { user, User } from './auth-schema';
 
 // Optionally, if not using email/pass login, you can
 // use the Drizzle adapter for Auth.js / NextAuth
 // https://authjs.dev/reference/adapter/drizzle
 
 // biome-ignore lint: Forbidden non-null assertion.
-const client = postgres(process.env.POSTGRES_URL!);
-const db = drizzle(client);
 
 export async function getUser(email: string): Promise<Array<User>> {
   try {
@@ -51,44 +48,6 @@ export async function getUser(email: string): Promise<Array<User>> {
       'bad_request:database',
       'Failed to get user by email',
     );
-  }
-}
-
-export async function isSubscribed(email:string){
-  try {
-    const users = await db.select().from(user).where(eq(user.email, email));
-    const currentUser = users[0];
-
-    return !!(currentUser?.subscribed); // returns true only if subscribed === true
-  } catch (error) {
-    console.log('thrown error',error)
-    return false
-  }
-}
-
-export async function updatePlanLifetime({ email, stripe_subscription_id }:{ email:string, stripe_subscription_id:string }){
-  try {
-    if (!email || !stripe_subscription_id) {
-    throw new ChatSDKError(
-      'bad_request:database',
-      'Missing email or subscription ID'
-    );
-  }
-    console.log({subscribed: true, plan:"Lifetime", stripe_subscription_id, subscription_current_period_end: new Date('2099-12-31')})
-    return await db.update(user).set({ subscribed: true, plan:"Lifetime", stripe_subscription_id, subscription_status:'active', subscription_current_period_end: new Date('2099-12-31') }).where(eq(user.email,email)).returning();
-  } catch (error) {
-    throw new ChatSDKError(
-      'bad_request:database',
-      'Failed to update user subscription',
-    );
-  }
-}
-
-export async function createUserGoogle(email:string){
-  try {
-    return await db.insert(user).values({ email,subscribed:false });
-  } catch (error) {
-    throw new ChatSDKError('bad_request:database', 'Failed to create user');
   }
 }
 
