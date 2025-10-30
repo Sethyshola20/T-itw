@@ -12,7 +12,6 @@ import {
   lt,
   type SQL,
 } from 'drizzle-orm';
-import postgres from 'postgres';
 
 import {
   chat,
@@ -25,7 +24,7 @@ import {
   type Chat,
   stream,
 } from './schema';
-import type { ArtifactKind } from '@/components/ui/artifact';
+import type { ArtifactKind } from '@/components/ai-elements/artifact';
 import { generateUUID } from '../utils';
 
 import type { VisibilityType } from '@/components/ui/visibility-selector';

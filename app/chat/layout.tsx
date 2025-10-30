@@ -1,7 +1,7 @@
 
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import Script from 'next/script';
-
+import { cookies } from 'next/headers';
 import { ThemeProvider } from 'next-themes';
 import { AppSidebar } from '@/components/ui/app-sidebar';
 import { DataStreamProvider } from '@/components/ui/data-stream-provider';
@@ -13,8 +13,8 @@ export default async function Layout({
 }: {
   children: React.ReactNode;
 }) {
-
-  //const isCollapsed = cookieStore.get('sidebar:state')?.value !== 'true';
+  const  cookieStore = await  cookies()
+  const isCollapsed = cookieStore.get('sidebar:state')?.value !== 'true';
 
   return (
     <ThemeProvider
@@ -28,8 +28,8 @@ export default async function Layout({
         strategy="beforeInteractive"
       />
       <DataStreamProvider>
-        <SidebarProvider defaultOpen={false}>
-         {/**<AppSidebar /> */} 
+        <SidebarProvider defaultOpen={true}>
+         <AppSidebar /> 
           <SidebarInset>{children}</SidebarInset>
         </SidebarProvider>
       </DataStreamProvider>

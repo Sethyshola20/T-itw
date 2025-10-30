@@ -1,5 +1,6 @@
 "use client";
 
+import { textArtifact } from "@/artifacts/text/client";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -7,11 +8,32 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Vote } from "@/lib/db/schema";
 import { cn } from "@/lib/utils";
+import { Attachment, ChatMessage } from "@/types";
 import { type LucideIcon, XIcon } from "lucide-react";
 import type { ComponentProps, HTMLAttributes } from "react";
 
 export type ArtifactProps = HTMLAttributes<HTMLDivElement>;
+
+export interface ChatArtifactProps extends ArtifactProps {
+  chatId: string;
+  messages: ChatMessage[];
+  setMessages: (messages: ChatMessage[]) => void;
+  attachments: Attachment[];
+  setAttachments: (attachments: Attachment[]) => void;
+  sendMessage: (msg: any) => void;
+  stop?: () => void;
+  regenerate?: () => void;
+  votes?: Vote[];
+  status?: string;
+  isReadonly?: boolean;
+  selectedVisibilityType?: string;
+}
+
+export const ChatArtifact = (props: ChatArtifactProps) => {
+  return <Artifact {...props} />;
+};
 
 export const Artifact = ({ className, ...props }: ArtifactProps) => (
   <div
@@ -145,3 +167,8 @@ export const ArtifactContent = ({
 }: ArtifactContentProps) => (
   <div className={cn("flex-1 overflow-auto p-4", className)} {...props} />
 );
+
+export const artifactDefinitions = [
+  textArtifact,
+];
+export type ArtifactKind = (typeof artifactDefinitions)[number]['kind'];

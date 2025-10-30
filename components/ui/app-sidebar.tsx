@@ -13,7 +13,7 @@ import {
 import Link from 'next/link';
 import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip"
 import { SidebarHistory } from './sidebar-history';
-import { authClient } from '@/lib/better-auth/auth-client';
+import { authClient } from '@/lib/auth-client';
 import { SidebarUserNav } from './sidebar-user-nav';
 
 export function AppSidebar() {

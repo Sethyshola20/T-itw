@@ -2,7 +2,7 @@
 
 import { generateText, LanguageModel, streamText, type UIMessage } from 'ai';
 import { cookies } from 'next/headers';
-// import { deleteMessagesByChatIdAfterTimestamp, getMessageById, updateChatVisiblityById, } from '@/lib/db/queries';
+import { deleteMessagesByChatIdAfterTimestamp, getMessageById, updateChatVisiblityById, } from '@/lib/db/queries';
 
 import { myProvider } from '@/lib/ai/providers';
 import { VisibilityType } from '@/components/ui/visibility-selector';
@@ -32,12 +32,12 @@ export async function generateTitleFromUserMessage({
 
 
 export async function deleteTrailingMessages({ id }: { id: string }) {
-  // const [message] = await getMessageById({ id });
+   const [message] = await getMessageById({ id });
 
-  //await deleteMessagesByChatIdAfterTimestamp({
-    //chatId: message.chatId,
-    //timestamp: message.createdAt,
-  //});
+  await deleteMessagesByChatIdAfterTimestamp({
+    chatId: message.chatId,
+    timestamp: message.createdAt,
+  });
 }
 
 export async function updateChatVisibility({
@@ -47,5 +47,5 @@ export async function updateChatVisibility({
   chatId: string;
   visibility: VisibilityType;
 }) {
-  //await updateChatVisiblityById({ chatId, visibility });
+  await updateChatVisiblityById({ chatId, visibility });
 }

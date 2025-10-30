@@ -19,6 +19,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { LoaderIcon } from './icons';
 import { Avatar, AvatarFallback, AvatarImage } from './avatar';
+import { SignOut } from '@/lib/sign-in';
 
 export function SidebarUserNav({ user }: { user: any }) {
   const router = useRouter();
@@ -77,19 +78,11 @@ export function SidebarUserNav({ user }: { user: any }) {
                 className="w-full cursor-pointer"
                 onClick={() => {
                   if (status === 'loading') {
-                    toast({
-                      type: 'error',
-                      description:
-                        'Checking authentication status, please try again!',
-                    });
+                    toast.error("Checking authentication status, please try again!")
 
                     return;
                   }
-
-                  
-                    signOut({
-                      redirectTo: '/',
-                    });
+                    SignOut()
                   
                 }}
               >

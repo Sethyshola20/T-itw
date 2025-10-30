@@ -3,35 +3,25 @@ import {
   extractReasoningMiddleware,
   wrapLanguageModel,
 } from 'ai';
-import {
-  artifactModel,
-  chatModel,
-  reasoningModel,
-  titleModel,
-} from './models.test';
-import { isDevelopmentEnvironment } from '@/lib/constants';
-import { openai } from "@ai-sdk/openai"
+import { google } from "@ai-sdk/google"
 
-export const myProvider = isDevelopmentEnvironment
-  ? customProvider({
+export const myProvider = customProvider({
       languageModels: {
-        'chat-model': chatModel,
-        'chat-model-reasoning': reasoningModel,
-        'title-model': titleModel,
-        'artifact-model': artifactModel,
-      },
-    })
-  : customProvider({
-      languageModels: {
-        'chat-model': openai('chatgpt-4o-latest'),
+        // High-volume, general-purpose chat
+        'chat-model': google("gemini-2.5-flash"), 
+        
+        // Complex reasoning/logic model - requires 2.5 Pro's capabilities
         'chat-model-reasoning': wrapLanguageModel({
-          model: openai('grok-3-mini-beta'),
+          model: google('gemini-2.5-pro'), 
           middleware: extractReasoningMiddleware({ tagName: 'think' }),
         }),
-        'title-model': openai('grok-2-1212'),
-        'artifact-model': openai('grok-2-1212'),
+        
+        // Title and artifact generation - fine with Flash
+        'title-model': google('gemini-2.5-flash'), 
+        'artifact-model': google('gemini-2.5-flash'),
       },
       imageModels: {
-        'small-model': openai.imageModel('grok-2-image'),
+        // State-of-the-art image generation
+        'generation-model': google.imageModel('imagen-4-generate'), 
       },
     });
