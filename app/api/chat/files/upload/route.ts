@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { generateObject, GenerateObjectResult, generateText } from 'ai';
+import { createUIMessageStream, generateObject, GenerateObjectResult, generateText, JsonToSseTransformStream, ModelMessage, UIDataTypes, UIMessage } from 'ai';
 import { saveFile, saveFileFromUrl, validateFileType, validatePdfUrl } from '@/helper';
 import { EngineeringDeliverableObjectType, engineeringDeliverableSchema } from '@/types';
 import { SYSTEM_PROMPT } from '@/lib/constants';
@@ -107,7 +107,30 @@ export async function POST(req: Request) {
     });
 
 
-    return NextResponse.json({ data: result.object, documentId }, { status: 200 });
+    const { scopeDescription, remarks } = result.object;
+    const finalDocumentId = documentId; 
+
+    const metadataPayload = {
+        scopeDescription,
+        remarks,
+        documentId: finalDocumentId,
+    };
+
+    const dataChunk = {
+        type: 'data-metadata', 
+        id: generateUUID(),
+        data: metadataPayload, 
+        transient: true, 
+    } as const; 
+
+    const stream = createUIMessageStream({
+        execute: async ({ writer }) => writer.write(dataChunk),
+        onFinish: async () => {}, 
+        onError: () => 'Error streaming metadata.',
+        generateId: generateUUID,
+    });
+
+    return new Response(stream.pipeThrough(new JsonToSseTransformStream()), { status: 200 });
   } catch (error) {
     console.log({error})
     return NextResponse.json(

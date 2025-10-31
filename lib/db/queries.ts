@@ -25,8 +25,6 @@ import {
   stream,
 } from './schema';
 import type { ArtifactKind } from '@/components/ai-elements/artifact';
-import { generateUUID } from '../utils';
-
 import type { VisibilityType } from '@/components/ui/visibility-selector';
 import { ChatSDKError } from '../errors';
 import { db } from './drizzle';

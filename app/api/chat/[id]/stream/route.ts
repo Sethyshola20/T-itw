@@ -83,7 +83,7 @@ export async function POST(req: Request) {
     if (documentId) {
 
       const { embedding } = await embed({
-        model: google.textEmbedding('gemini-embedding-001'),
+        model: google.textEmbedding("text-embedding-004"),
         value: userQuery,
       });
 

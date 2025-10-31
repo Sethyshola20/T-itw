@@ -46,9 +46,8 @@ export async function storeEmbeddings(
       const chunkText = chunks[i];
 
       const { embedding } = await embed({
-        model: google.textEmbedding("gemini-embedding-001"),
+        model: google.textEmbedding("text-embedding-004"),
         value: chunkText,
-        abortSignal: AbortSignal.timeout(1000),
       })
 
       const vector = {

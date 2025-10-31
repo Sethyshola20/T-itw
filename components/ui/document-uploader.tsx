@@ -15,9 +15,9 @@ import { useState, useRef } from "react"
 import { z } from "zod"
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import { Loader } from '../ai-elements/loader';
 
-export default function DocumentUploader({setDocumentId, setShowUpload}:{setDocumentId:React.Dispatch<React.SetStateAction<string | null>>, setShowUpload:React.Dispatch<React.SetStateAction<boolean>>
-}){
+export default function DocumentUploader({ setDocumentId, setShowUpload}:{ setDocumentId: React.Dispatch<React.SetStateAction<string | null>>, setShowUpload:React.Dispatch<React.SetStateAction<boolean>> }){
   
   const [files, setFiles] = useState<FileList | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -36,28 +36,76 @@ export default function DocumentUploader({setDocumentId, setShowUpload}:{setDocu
 
   async function handleUpload() {
     if (!files && !form.getValues('url')) return;
+
     setUploading(true);
+
+    const toastId = toast.loading('1/3: Starting secure document upload...');
+
     const formData = new FormData();
     if (files && files.length > 0) {
       formData.append('file', files[0]);
     }
     const url = form.getValues('url');
     if (url) formData.append('url', url);
+
+    let finalDocumentId: string | null = null;
+    let success = false;
+    
     try {
       const res = await fetch('/api/chat/files/upload', {
         method: 'POST',
         body: formData,
       });
-      const data = await res.json();
-      if (res.ok && data.documentId) {
-        setDocumentId(data.documentId);
+
+      if (!res.ok || !res.body) {
+        throw new Error('Server upload failed.');
+      }
+      
+      toast.info('2/3: Analyzing content and creating embeddings (this may take a minute for large files)...', {id: toastId});
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      
+      let buffer = ''; 
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+
+        const lines = buffer.split('\n\n');
+        buffer = lines.pop() || ''; // Keep incomplete part
+
+        for (const line of lines) {
+          if (line.startsWith('data:')) {
+            const jsonString = line.substring(5).trim();
+            
+            try {
+              const chunk = JSON.parse(jsonString);
+              
+              if (chunk.type === 'data-metadata') {
+                finalDocumentId = chunk.data.documentId;
+                
+                toast.info('3/3: Document summary received. Finalizing chat.', {id: toastId});
+                success = true;
+              }
+            } catch (e) {
+              console.error('Failed to parse stream JSON:', e);
+            }
+          }
+        }
+      }
+      if (success && finalDocumentId) {
+        setDocumentId(finalDocumentId);
         setShowUpload(false);
-        toast.success('Document uploaded and processed.');
+        toast.success('Document processed and summary displayed. You can now ask questions about the document.', {id: toastId});
       } else {
-        toast.error('Upload failed.');
+        throw new Error('Upload completed but document ID was not received in the stream.');
       }
     } catch (error) {
-      toast.error('Error during upload.');
+      toast.error(`Error during upload: ${error instanceof Error ? error.message : 'Unknown error.'}`, {id: toastId});
+      success = false;
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -102,7 +150,7 @@ export default function DocumentUploader({setDocumentId, setShowUpload}:{setDocu
                   disabled={uploading}
                   className="w-full"
                 >
-                  {uploading ? 'Uploading...' : 'Upload Source'}
+                  {uploading ? 'Processing Document...' : 'Start Analysis'}
                 </Button>
               </div>
             </Form>

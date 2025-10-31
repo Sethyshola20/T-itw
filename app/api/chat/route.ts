@@ -75,7 +75,7 @@ export async function POST(req: Request) {
     const query = coremessages[coremessages.length - 1].content
 
     const { embedding } = await embed({
-          model: google.textEmbedding("gemini-embedding-001"),
+          model: google.textEmbedding("text-embedding-004"),
           value: query,
         });
     

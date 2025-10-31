@@ -14,13 +14,11 @@ import { myProvider } from '@/lib/ai/providers';
 export default function DocumentChatPage() {
   const [showUpload, setShowUpload] = useState(true);
   const [documentId, setDocumentId] = useState<string | null>(null);
+
   const id = generateUUID();
-  const { 
-          data: session, 
-          isPending, //loading state
-          error, //error object
-          refetch //refetch the session
-      } = authClient.useSession() 
+  
+  const { data: session } = authClient.useSession() 
+  
   return (
     <div className="flex flex-col w-full max-w-2xl mx-auto py-16 max-h-full">
       {showUpload && <DocumentUploader setDocumentId={setDocumentId} setShowUpload={setShowUpload}/>}
