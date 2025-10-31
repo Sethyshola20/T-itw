@@ -1,47 +1,58 @@
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
-
-import { auth } from '@/app/(auth)/auth';
-import { Chat } from '@/components/chat';
-import { getChatById, getMessagesByChatId, isSubscribed } from '@/lib/db/queries';
-import { DataStreamHandler } from '@/components/data-stream-handler';
+import { getChatById, getMessagesByChatId } from '@/lib/db/queries'; // Removed isSubscribed
+import { DataStreamHandler } from '@/components/ui/data-stream-handler';
 import { DEFAULT_CHAT_MODEL } from '@/lib/ai/models';
 import { convertToUIMessages } from '@/lib/utils';
+import { auth } from '@/lib/auth';
+import Chat from '@/components/ui/chat';
+
+// We assume the chat type includes the linked document ID from the database
+interface ChatWithDocument {
+    id: string;
+    userId: string;
+    visibility: 'public' | 'private';
+    documentId: string | null; // The RAG identifier
+    // ... other chat fields
+}
 
 export default async function Page(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const { id } = params;
-  const chat = await getChatById({ id });
+  
+  // Retrieve chat data
+  const chat = await getChatById({ id }) 
 
   if (!chat) {
+    // If chat does not exist, use notFound()
     notFound();
   }
 
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers() // you need to pass the headers object.
+  })
 
-  if (!session) {
-    redirect('/');
-  }
   
-  const subscribed = await isSubscribed(session.user.email!);
-  
-  if(!subscribed) {
-    redirect("/membership?unsubscribed")
-  } 
-  
+  // --- Authentication and Authorization Checks (Matching your structure) ---
+
   if (chat.visibility === 'private') {
-    if (!session.user) {
-      console.log("session.user is null");
+    if (!session) {
+      // If private, redirect if no session
+      redirect('/');
+    }
+    if (session.user.id !== chat.userId) {
+      // If private and not the owner, use notFound()
       return notFound();
     }
-
-    if (session.user.id !== chat.userId) {
-      console.log("session.user.id:", session.user.id);
-      console.log("chat.userId:", chat.userId);
-      return notFound();
+  } else {
+    // For public chats, if there is no session, we still allow viewing (read-only)
+    if (!session) {
+      // If no session, we still allow access, but the user won't be able to chat
     }
   }
 
+
+  // --- Data Retrieval ---
   const messagesFromDb = await getMessagesByChatId({
     id,
   });
@@ -50,18 +61,31 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
 
   const cookieStore = await cookies();
   const chatModelFromCookie = cookieStore.get('chat-model');
+  
+  // 1. EXTRACT the linked document ID from the chat record
+  const initialDocumentId = chat.documentId; 
+
+  // Determine if the chat should be read-only
+  const isReadonly = !session || (session.user.id !== chat.userId);
+
+  // --- Rendering ---
+  const chatProps = {
+    id: chat.id,
+    initialMessages: uiMessages,
+    initialVisibilityType: chat.visibility,
+    isReadonly: isReadonly, // Set based on session and ownership
+    session: session,
+    autoResume: true,
+    // 2. PASS the document ID to the Chat component for RAG
+    initialDocumentId: initialDocumentId, 
+  };
 
   if (!chatModelFromCookie) {
     return (
       <>
         <Chat
-          id={chat.id}
-          initialMessages={uiMessages}
+          {...chatProps}
           initialChatModel={DEFAULT_CHAT_MODEL}
-          initialVisibilityType={chat.visibility}
-          isReadonly={session?.user?.id !== chat.userId}
-          session={session}
-          autoResume={true}
         />
         <DataStreamHandler />
       </>
@@ -71,13 +95,8 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
   return (
     <>
       <Chat
-        id={chat.id}
-        initialMessages={uiMessages}
+        {...chatProps}
         initialChatModel={chatModelFromCookie.value}
-        initialVisibilityType={chat.visibility}
-        isReadonly={session?.user?.id !== chat.userId}
-        session={session}
-        autoResume={true}
       />
       <DataStreamHandler />
     </>

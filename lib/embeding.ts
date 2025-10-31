@@ -1,14 +1,10 @@
 import { Pinecone } from "@pinecone-database/pinecone";
-import OpenAI from "openai";
+import { google } from "@ai-sdk/google"
+import { embedMany, cosineSimilarity, embed } from "ai";
 
-/**
- * Initialize OpenAI + Pinecone clients.
- * (Make sure your .env file contains OPENAI_API_KEY and PINECONE_API_KEY)
- */
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 export const pinecone = new Pinecone({ apiKey: process.env.PINECONE_API_KEY! });
 
-// Change this to your Pinecone index name
+
 export const index = pinecone.Index("engineering-docs");
 
 /**
@@ -49,14 +45,15 @@ export async function storeEmbeddings(
     for (let i = 0; i < chunks.length; i++) {
       const chunkText = chunks[i];
 
-      const embedding = await openai.embeddings.create({
-        model: "text-embedding-3-small",
-        input: chunkText,
-      });
+      const { embedding } = await embed({
+        model: google.textEmbedding("gemini-embedding-001"),
+        value: chunkText,
+        abortSignal: AbortSignal.timeout(1000),
+      })
 
       const vector = {
         id: `${documentId}_${i}`,
-        values: embedding.data[0].embedding,
+        values: embedding,
         metadata: {
           ...metadata,
           documentId,

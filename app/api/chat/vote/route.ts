@@ -50,9 +50,9 @@ export async function PATCH(request: Request) {
   }
 
   
-const session = await auth.api.getSession({
+  const session = await auth.api.getSession({
       headers: request.headers,
-    });
+  });
 
   if (!session?.user) {
     return new ChatSDKError('unauthorized:vote').toResponse();

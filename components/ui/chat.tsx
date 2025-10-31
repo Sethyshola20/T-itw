@@ -72,7 +72,7 @@ export default function Chat({
 
   const { mutate } = useSWRConfig();
   const { setDataStream } = useDataStream();
-  // Fine-grained streaming chat
+
   const {
     messages,
     setMessages,
@@ -96,6 +96,7 @@ export default function Chat({
             message: messages.at(-1),
             selectedChatModel: initialChatModel,
             selectedVisibilityType: visibilityType,
+            documentId,
             ...body,
           },
         };
@@ -105,10 +106,10 @@ export default function Chat({
       setDataStream((ds) => (ds ? [...ds, dataPart as DataUIPart<CustomUIDataTypes>] : [dataPart as DataUIPart<CustomUIDataTypes>]));
     },
 
-
     onFinish: () => {
       mutate(unstable_serialize(getChatHistoryPaginationKey));
     },
+
     onError: (error) => {
       if (error instanceof ChatSDKError) {
         toast.error(error.message)
@@ -116,11 +117,28 @@ export default function Chat({
     },
   });
 
+
+  useEffect(() => {
+      if (documentId && initialMessages.length === 0 && messages.length === 0) {
+          const welcomeMessage: PromptInputMessage = {
+              text: `I've successfully loaded the document! How can I help you understand this engineering deliverable?`,
+          };
+          
+          setMessages([
+              {
+                  id: generateUUID(),
+                  role: 'assistant',
+                  parts: [{ type: 'text', text: welcomeMessage.text !}],
+              }
+          ]);
+      }
+  }, [documentId, initialMessages.length, messages.length, setMessages, generateUUID]);
+
   const handleSubmit = (message: PromptInputMessage) => {
-  sendMessage({ role: 'user', parts: [{ type: 'text', text: message.text! }] });
-  setInput('');
-  setAttachments([]);
-};
+    sendMessage({ role: 'user', parts: [{ type: 'text', text: message.text! }] });
+    setInput('');
+    setAttachments([]);
+  };
 
   const { data: votes } = useSWR<Array<Vote>>(
     messages.length >= 2 ? `/api/chat/vote?chatId=${id}` : null,
@@ -136,7 +154,6 @@ export default function Chat({
 
   return (
     <div className="flex flex-col w-full bg-background">
-      {/* Chat Header */}
       <ChatHeader
         chatId={id}
         selectedModelId={initialChatModel}
@@ -144,8 +161,6 @@ export default function Chat({
         isReadonly={isReadonly}
         session={session}
       />
-
-      {/* Conversation */}
         <Conversation>
           <ConversationContent>
             {messages.length === 0 ? (
@@ -167,8 +182,6 @@ export default function Chat({
           </ConversationContent>
           <ConversationScrollButton />
         </Conversation>
-
-        {/* Prompt Input */}
         {!isReadonly && (
           <PromptInputProvider>
             <PromptInput onSubmit={handleSubmit} className="mt-4" multiple>
@@ -195,8 +208,6 @@ export default function Chat({
             </PromptInput>
           </PromptInputProvider>
         )}
-
-        {/* Artifact Panel */}
         <ChatArtifact
           chatId={id}
           messages={messages}
