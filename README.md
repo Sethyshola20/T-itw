@@ -49,10 +49,12 @@ A Next.js app that allows users to upload PDF documents and chat with an AI assi
 
 Create a `.env.local` file in the root directory with the following content:
 
-NEXT_PUBLIC_OPENAI_API_KEY=your_openai_api_key
-NEXT_PUBLIC_MISTRAL_API_KEY=your_mistral_api_key
-PINECONE_API_KEY=your_pinecone_key
-PINECONE_ENV=your_pinecone_environment
+POSTGRES_URL=
+AUTH_SECRET=
+GOOGLE_GENERATIVE_AI_API_KEY=
+PINECONE_API_KEY=
+PINECONE_HOST=
+REDIS_URL=
 
 
 ### Running the App

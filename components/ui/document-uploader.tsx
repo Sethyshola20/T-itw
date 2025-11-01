@@ -18,10 +18,6 @@ import { useForm } from 'react-hook-form';
 import { experimental_useObject as useObject } from '@ai-sdk/react';
 import { EngineeringDeliverableObjectType, engineeringDeliverableSchema } from '@/types';
 import { Loader } from '../ai-elements/loader';
-import { useRouter } from 'next/navigation';
-import { ChatSDKError } from '@/lib/errors';
-
-
 
 export default function DocumentUploader({ setDocumentId, setShowUpload, setInitialMessage, apiKey }:{ setDocumentId: React.Dispatch<React.SetStateAction<string | null>>, setShowUpload:React.Dispatch<React.SetStateAction<boolean>>, setInitialMessage: React.Dispatch<React.SetStateAction<EngineeringDeliverableObjectType | undefined>>, apiKey: string }){
   
