@@ -1,6 +1,6 @@
 # AI Document Chat Assistant
 
-A Next.js app that allows users to upload PDF documents and chat with an AI assistant that answers questions based on the document content using Retrieval-Augmented Generation (RAG) with OpenAI and Mistral APIs.
+A Next.js app that allows users to upload PDF documents and chat with an AI assistant that answers questions based on the document content using Retrieval-Augmented Generation (RAG) with Gemini
 
 ---
 
@@ -17,8 +17,7 @@ A Next.js app that allows users to upload PDF documents and chat with an AI assi
 ## Tech Stack
 
 - Frontend: Next.js (React) with Tailwind CSS
-- Backend: Next.js API Routes with TypeScript
-- AI APIs: OpenAI, Mistral via AI SDK
+- Backend: Next.js APIGemini, Mistral via AI SDK
 - Agent & RAG: LangChain 
 - Vector DB: Pinecone for fast embedding retrieval
 - Form handling: react-hook-form with Zod validation
@@ -39,7 +38,7 @@ A Next.js app that allows users to upload PDF documents and chat with an AI assi
 ### Prerequisites
 
 - Node.js 18 or later
-- API keys for OpenAI and/or Mistral
+- API keys for Gemini
 - Access to a vector database service (Pinecone or Weaviate)
 
 ### Installation
@@ -68,7 +67,7 @@ Open your browser at [http://localhost:3000](http://localhost:3000) to use the a
 
 ## Usage
 
-1. Upload one or more PDF documents using the file input.
+1. Upload one PDF document using the file input.
 2. Ask questions in the chat input related to the documents.
 3. View AI-generated answers with references to the source content.
 4. Extend the app with live web search or additional AI agents as needed.
