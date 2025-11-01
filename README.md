@@ -74,23 +74,3 @@ Open your browser at [http://localhost:3000](http://localhost:3000) to use the a
 4. Extend the app with live web search or additional AI agents as needed.
 
 ---
-
-## Contributing
-
-Contributions, issues, and feature requests are welcome! Feel free to fork the repo and submit pull requests.
-
----
-
-## License
-
-This project is licensed under the MIT License.
-
----
-
-## Acknowledgments
-
-- Inspired by agentic AI workflows and RAG techniques.
-- Thanks to OpenAI, Mistral, LangChain, and the AI SDK communities.
-- Built with Next.js and Tailwind CSS.
-
----
