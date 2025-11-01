@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import useSWR, { useSWRConfig } from 'swr';
 import { useChat } from '@ai-sdk/react';
 import { DataUIPart, DefaultChatTransport, FileUIPart } from 'ai';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { unstable_serialize } from 'swr/infinite';
 import {
   Conversation,
@@ -33,7 +33,7 @@ import { ChatHeader } from '@/components/ui/chat-header';
 import { toast } from 'sonner';
 import { CopyIcon, RefreshCcwIcon, GlobeIcon, ShareIcon, MessageSquare } from 'lucide-react';
 import { fetcher, fetchWithErrorHandlers, generateUUID } from '@/lib/utils';
-import type { ChatMessage, Attachment, CustomUIDataTypes } from '@/types';
+import type { ChatMessage, Attachment, CustomUIDataTypes, EngineeringDeliverableObjectType } from '@/types';
 import type { Vote } from '@/lib/db/schema';
 import { Artifact, ChatArtifact } from '@/components/ai-elements/artifact';
 import { useAutoResume } from '@/hooks/use-auto-resume';
@@ -42,9 +42,9 @@ import { useChatVisibility } from '@/hooks/use-chat-visibility';
 import { useDataStream } from './data-stream-provider';
 import { ChatSDKError } from '@/lib/errors';
 import { getChatHistoryPaginationKey } from './sidebar-history';
-
 export default function Chat({
   id,
+  initialMessage,
   initialMessages,
   initialChatModel,
   initialVisibilityType,
@@ -54,7 +54,8 @@ export default function Chat({
   autoResume,
 }: {
   id: string;
-  initialMessages: ChatMessage[];
+  initialMessage: EngineeringDeliverableObjectType | undefined;
+  initialMessages: ChatMessage[],
   initialChatModel: string;
   documentId:string | null;
   initialVisibilityType: VisibilityType;
@@ -71,7 +72,6 @@ export default function Chat({
   const [webSearch, setWebSearch] = useState(false);
 
   const { mutate } = useSWRConfig();
-  const { setDataStream } = useDataStream();
 
   const {
     messages,
@@ -83,7 +83,7 @@ export default function Chat({
     resumeStream,
   } = useChat<ChatMessage>({
     id,
-    messages: initialMessages,
+    messages: [],
     experimental_throttle: 100,
     generateId: generateUUID,
     transport: new DefaultChatTransport({
@@ -102,10 +102,6 @@ export default function Chat({
         };
       },
     }),
-    onData: (dataPart) => {
-      setDataStream((ds) => (ds ? [...ds, dataPart as DataUIPart<CustomUIDataTypes>] : [dataPart as DataUIPart<CustomUIDataTypes>]));
-    },
-
     onFinish: () => {
       mutate(unstable_serialize(getChatHistoryPaginationKey));
     },
@@ -119,20 +115,40 @@ export default function Chat({
 
 
   useEffect(() => {
-      if (documentId && initialMessages.length === 0 && messages.length === 0) {
-          const welcomeMessage: PromptInputMessage = {
-              text: `I've successfully loaded the document! How can I help you understand this engineering deliverable?`,
-          };
-          
+      if (documentId && initialMessage && messages.length === 0 && initialMessages.length === 0) {
+
+          const jsonText = JSON.stringify(initialMessage, undefined, 2);
+
+          const text = `${"I've successfully loaded the document!, here is a summary in json format" + '\n\n' }Here’s the raw data:\n\n\`\`\`json\n${jsonText}\n\`\`\``;
+         
+
           setMessages([
-              {
-                  id: generateUUID(),
-                  role: 'assistant',
-                  parts: [{ type: 'text', text: welcomeMessage.text !}],
-              }
+            {
+              id: generateUUID(),
+              role: 'assistant',
+              parts: [{ type: 'text', text }],
+            },
           ]);
+
       }
-  }, [documentId, initialMessages.length, messages.length, setMessages, generateUUID]);
+  }, [documentId,initialMessages.length, initialMessage, messages.length, setMessages]);
+
+  const searchParams = useSearchParams();
+  const query = searchParams.get('query');
+
+  const [hasAppendedQuery, setHasAppendedQuery] = useState(false);
+
+  useEffect(() => {
+    if (query && !hasAppendedQuery) {
+      sendMessage({
+        role: 'user' as const,
+        parts: [{ type: 'text', text: query }],
+      });
+
+      setHasAppendedQuery(true);
+      window.history.replaceState({}, '', `/chat/${id}`);
+    }
+  }, [query, sendMessage, hasAppendedQuery, id]);
 
   const handleSubmit = (message: PromptInputMessage) => {
     sendMessage({ role: 'user', parts: [{ type: 'text', text: message.text! }] });
@@ -161,7 +177,7 @@ export default function Chat({
         isReadonly={isReadonly}
         session={session}
       />
-        <Conversation>
+        <Conversation className="flex-1 overflow-y-auto">
           <ConversationContent>
             {messages.length === 0 ? (
               <ConversationEmptyState
@@ -173,7 +189,13 @@ export default function Chat({
               messages.map((message) => (
                 <Message key={message.id} from={message.role}>
                   <MessageContent>
-                    <Response>{message.parts.map((part) => 'text' in part ? part.text : '').join(' ')}</Response>
+                    <Response>{message.parts.map((part) => {
+                      if (part && typeof part === 'object') {
+                        if ('text' in part && typeof (part as any).text === 'string') return (part as any).text;
+                        if ('delta' in part && typeof (part as any).delta === 'string') return (part as any).delta;
+                      }
+                      return '';
+                    }).join(' ')}</Response>
                   </MessageContent>
                 </Message>
               ))
@@ -184,7 +206,7 @@ export default function Chat({
         </Conversation>
         {!isReadonly && (
           <PromptInputProvider>
-            <PromptInput onSubmit={handleSubmit} className="mt-4" multiple>
+            <PromptInput onSubmit={handleSubmit} className="mt-4 bottom-0 bg-background border-t sticky" multiple>
               <PromptInputHeader>
                 <PromptInputAttachments>
                   {(attachment) => <PromptInputAttachment data={attachment} />}
@@ -223,6 +245,5 @@ export default function Chat({
           selectedVisibilityType={initialVisibilityType}
         />
       </div>
-    
   );
 }

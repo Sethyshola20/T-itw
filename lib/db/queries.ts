@@ -186,8 +186,12 @@ export async function saveMessages({
   messages: Array<DBMessage>;
 }) {
   try {
-    return await db.insert(message).values(messages);
+    return await db
+      .insert(message)
+      .values(messages)
+      .onConflictDoNothing({ target: message.id });
   } catch (error) {
+    console.log("error", error)
     throw new ChatSDKError('bad_request:database', 'Failed to save messages');
   }
 }

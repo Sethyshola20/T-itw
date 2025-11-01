@@ -9,23 +9,25 @@ import { DataStreamHandler } from '@/components/ui/data-stream-handler';
 import { authClient } from '@/lib/auth-client';
 import { generateUUID } from '@/lib/utils';
 import { myProvider } from '@/lib/ai/providers';
+import { ChatMessage, EngineeringDeliverableObjectType } from '@/types';
 
 
 export default function DocumentChatPage() {
   const [showUpload, setShowUpload] = useState(true);
   const [documentId, setDocumentId] = useState<string | null>(null);
+  const [initialMessage, setInitialMessage] = useState<EngineeringDeliverableObjectType>()
 
   const id = generateUUID();
   
   const { data: session } = authClient.useSession() 
   
   return (
-    <div className="flex flex-col w-full max-w-2xl mx-auto py-16 max-h-full">
-      {showUpload && <DocumentUploader setDocumentId={setDocumentId} setShowUpload={setShowUpload}/>}
+    <div className="flex flex-col w-full max-w-2xl mx-auto py-16 max-h-full h-full">
+      {showUpload && <DocumentUploader setDocumentId={setDocumentId} setShowUpload={setShowUpload} setInitialMessage={setInitialMessage}/>}
 
       <Separator className="my-6" />
 
-      <Chat documentId={documentId} session={session} autoResume={true} id={id} key={id} initialChatModel={myProvider.languageModel.name} initialMessages={[]} isReadonly={false} initialVisibilityType="private"/>
+      <Chat documentId={documentId} session={session} autoResume={true} id={id} key={id} initialChatModel={myProvider.languageModel.name} initialMessages={[]} initialMessage={initialMessage} isReadonly={false} initialVisibilityType="private"/>
       <DataStreamHandler/>
       <Toaster />
     </div>

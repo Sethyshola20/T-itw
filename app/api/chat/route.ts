@@ -19,9 +19,10 @@ const pc = new Pinecone({
 
 const pineconeIndex = pc.index("engineering-docs");
 
-export async function POST(req: Request) {
+export async function POST(req: Request, res: Response) {
   try {
     const { message, id, documentId, selectedVisibilityType } :{ message: UIMessage, id:string, documentId: string, selectedVisibilityType: VisibilityType } = await req.json();
+    console.log('[api/chat] incoming', { id, documentId, selectedVisibilityType, parts: message?.parts });
 
     const session = await auth.api.getSession({
       headers: req.headers
@@ -51,6 +52,25 @@ export async function POST(req: Request) {
         documentId,
         visibility: selectedVisibilityType,
       });
+      // Persist initial assistant welcome so it appears in history
+      try {
+        const welcomeText = `I've successfully loaded the document! How can I help you understand this engineering deliverable?`;
+        await saveMessages({
+          messages: [
+            {
+              chatId: id,
+              id: generateUUID(),
+              role: 'assistant',
+              parts: [{ type: 'text', text: welcomeText }],
+              attachments: [],
+              createdAt: new Date(),
+            },
+          ],
+        });
+        console.log('[api/chat] saved initial assistant welcome');
+      } catch (e) {
+        console.error('[api/chat] failed to save initial assistant welcome', e);
+      }
     } else {
       if (chat.userId !== session.user.id) {
         return new ChatSDKError('forbidden:chat').toResponse();
@@ -72,11 +92,24 @@ export async function POST(req: Request) {
 
     const coremessages = convertToModelMessages([message])
 
-    const query = coremessages[coremessages.length - 1].content
+    const lastMessageContent = coremessages[coremessages.length - 1].content
+    let queryText = '';
+
+    if (
+        Array.isArray(lastMessageContent) && 
+        lastMessageContent.length > 0 &&
+        typeof lastMessageContent[0] === 'object' &&
+        'text' in lastMessageContent[0] &&
+        typeof lastMessageContent[0].text === 'string'
+    ) {
+        queryText = lastMessageContent[0].text;
+    } else if (typeof lastMessageContent === 'string') {
+        queryText = lastMessageContent;
+    }
 
     const { embedding } = await embed({
           model: google.textEmbedding("text-embedding-004"),
-          value: query,
+          value: queryText,
         });
     
 
@@ -88,72 +121,92 @@ export async function POST(req: Request) {
       includeValues: false,
     });
 
-    const docs = queryResponse.matches.map((match:any) => (match.metadata as any)?.text).filter(Boolean);
-    
+    console.log('[api/chat] pinecone matches', queryResponse?.matches?.length);
+    const docs = (queryResponse?.matches ?? [])
+      .map((match:any) => (match?.metadata as any)?.textPreview ?? (match?.metadata as any)?.text)
+      .filter(Boolean);
+    console.log('[api/chat] docs length', docs.length);
 
     if (!docs.length) {
-      return NextResponse.json({ answer: "No relevant information found for this document." });
+      const messageText = 'I could not find relevant information for that question in this document.';
+      const stream = createUIMessageStream({
+        execute: async ({ writer }) => {
+          await writer.write({ type: 'text-delta', delta: messageText, id: generateUUID() });
+        },
+        onFinish: async () => {
+          try {
+            await saveMessages({
+              messages: [
+                {
+                  id: generateUUID(),
+                  role: 'assistant',
+                  parts: [{ type: 'text', text: messageText }],
+                  attachments: [],
+                  createdAt: new Date(),
+                  chatId: id,
+                },
+              ],
+            });
+          } catch (e) {
+            console.error('Failed to persist assistant message (no-docs):', e);
+          }
+        },
+        generateId: generateUUID,
+      });
+      return new Response(stream.pipeThrough(new JsonToSseTransformStream()), { status: 200 });
     }
 
     const context = docs.join("\n\n");
+    console.log('[api/chat] context size', context.length);
 
     const streamId = generateUUID();
     await createStreamId({ streamId, chatId: id });
     
-    const stream = createUIMessageStream({
-      execute: ({ writer: dataStream }) => {
-        const result = streamText({
-          model: google('gemini-2.5-flash'),
-          system: SYSTEM_PROMPT,
-          messages: [
-            {
-              role: "system",
-              content: "You are an assistant that answers questions based on a specific engineering document. Be concise and accurate.",
-            },
-            {
-              role: "user",
-              content: `Question: ${query}\n\nContext:\n${context}`,
-            },
-          ],
-        });
-
-        result.consumeStream();
-
-        dataStream.merge(
-          result.toUIMessageStream({
-            sendReasoning: true,
-          }),
-        );
-      },
-      generateId: generateUUID,
-      onFinish: async ({ messages }) => {
-        await saveMessages({
-          messages: messages.map((message) => ({
-            id: message.id,
-            role: message.role,
-            parts: message.parts,
-            createdAt: new Date(),
-            attachments: [],
-            chatId: id,
-          })),
-        });
-      },
-      onError: () => {
-        return 'Oops, an error occurred!';
+    console.log('[api/chat] streamText start');
+    const stream = streamText({
+      model: google('gemini-2.5-flash'),
+      system:
+        "You are a helpful engineering assistant. Answer the user's question using the provided document context. Respond in clear plain text. Do not output JSON or code blocks unless explicitly requested.",
+      messages: [
+        {
+          role: 'system',
+          content:
+            'You are an assistant that answers questions based on a specific engineering document.',
+        },
+        {
+          role: 'user',
+          content: `Question: ${queryText}\n\nContext:\n${context}`,
+        },
+      ],
+      onFinish: async ({ response }) => {
+        try {
+          console.log('[api/chat] onFinish received');
+          await saveMessages({
+            messages: response.messages.map((m) => ({
+              id: generateUUID(),
+              role: m.role,
+              parts: Array.isArray(m.content)
+                ? m.content.map((c) => {
+                    if (c && typeof c === 'object' && 'text' in c && typeof (c as any).text === 'string') {
+                      return { type: 'text', text: (c as any).text };
+                    }
+                    return c as any;
+                  })
+                : [{ type: 'text', text: m.content as string }],
+              attachments: [],
+              createdAt: new Date(),
+              chatId: id,
+            })),
+          });
+          console.log('[api/chat] onFinish saved');
+        } catch (e) {
+          console.error('Failed to persist assistant streamed messages:', e);
+        }
       },
     });
+    console.log('[api/chat] returning stream response');
 
-    const streamContext = getStreamContext();
-
-    if (streamContext) {
-      return new Response(
-        await streamContext.resumableStream(streamId, () =>
-          stream.pipeThrough(new JsonToSseTransformStream()),
-        ),
-      );
-    } else {
-      return new Response(stream.pipeThrough(new JsonToSseTransformStream()));
-    }
+    return stream.toUIMessageStreamResponse();
   } catch (error) {
     if (error instanceof ChatSDKError) {
       return error.toResponse();

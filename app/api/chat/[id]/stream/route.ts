@@ -1,17 +1,11 @@
-import { NextResponse } from 'next/server';
 import {
   convertToModelMessages,
-  createUIMessageStream,
-  JsonToSseTransformStream,
-  LanguageModel,
   embed,
   streamText,
   UIMessage,
 } from 'ai';
 import { google } from '@ai-sdk/google';
 import { Pinecone } from '@pinecone-database/pinecone';
-
-// --- Local Imports ---
 import {
   createStreamId,
   deleteChatById,
@@ -22,13 +16,9 @@ import {
 } from '@/lib/db/queries';
 import { convertToUIMessages, generateUUID } from '@/lib/utils';
 import { ChatSDKError } from '@/lib/errors';
-import type { ChatMessage } from '@/types';
 import type { VisibilityType } from '@/components/ui/visibility-selector';
 import { generateTitleFromUserMessage } from '@/app/chat/actions';
-import { PostRequestBody, postRequestBodySchema } from '@/app/api/schema';
 import { auth } from '@/lib/auth';
-import { systemPrompt } from '@/lib/ai/prompts'; 
-import { getStreamContext } from '@/utils';
 
 
 export const maxDuration = 60;
@@ -44,6 +34,7 @@ const pineconeIndex = pc.index("engineering-docs");
 export async function POST(req: Request) {
   try {
     const { message, id, documentId, selectedVisibilityType } :{ message: UIMessage, id:string, documentId: string, selectedVisibilityType: VisibilityType } = await req.json();
+    console.log('[api/chat/:id/stream] incoming', { id, documentId, selectedVisibilityType, parts: message?.parts });
 
     const session = await auth.api.getSession({
       headers: req.headers,
@@ -53,7 +44,6 @@ export async function POST(req: Request) {
       return new ChatSDKError('unauthorized:chat').toResponse();
     }
 
-    // --- Chat Initialization/Validation ---
     const chat = await getChatById({ id });
     if (!chat) {
       const title = await generateTitleFromUserMessage({ message });
@@ -64,6 +54,25 @@ export async function POST(req: Request) {
         documentId,
         visibility: selectedVisibilityType,
       });
+      // Persist initial assistant welcome so it appears in history
+      try {
+        const welcomeText = `I've successfully loaded the document! How can I help you understand this engineering deliverable?`;
+        await saveMessages({
+          messages: [
+            {
+              chatId: id,
+              id: generateUUID(),
+              role: 'assistant',
+              parts: [{ type: 'text', text: welcomeText }],
+              attachments: [],
+              createdAt: new Date(),
+            },
+          ],
+        });
+        console.log('[api/chat/:id/stream] saved initial assistant welcome');
+      } catch (e) {
+        console.error('[api/chat/:id/stream] failed to save initial assistant welcome', e);
+      }
     } else if (chat.userId !== session.user.id) {
       return new ChatSDKError('forbidden:chat').toResponse();
     }
@@ -97,66 +106,59 @@ export async function POST(req: Request) {
       });
 
 
-      const docs = queryResponse.matches
-        .map(match => (match.metadata as any)?.text) // Assuming your chunk text is stored under 'text'
+      console.log('[api/chat/:id/stream] pinecone matches', queryResponse?.matches?.length);
+      const docs = (queryResponse?.matches ?? [])
+        .map(match => (match?.metadata as any)?.textPreview ?? (match?.metadata as any)?.text)
         .filter(Boolean);
       
       context = docs.join('\n\n');
+      console.log('[api/chat/:id/stream] docs length', docs.length);
     }
 
-    const ragSystemPrompt =  `You are an expert assistant analyzing an engineering document. Answer the user's question ONLY based on the provided CONTEXT. Do not use external knowledge. If the context does not contain the answer, state that you cannot find the information in the provided document.\n\nCONTEXT:\n${context}`
+    const ragSystemPrompt =  `You are an expert assistant analyzing an engineering document. Answer the user's question ONLY based on the provided CONTEXT. Do not use external knowledge. If the context does not contain the answer, state that you cannot find the information in the provided document. Answer in clear plain text. Do not output JSON or code blocks unless explicitly requested.\n\nCONTEXT:\n${context}`
   
     const modelMessages = convertToModelMessages(uiMessages);
 
     const streamId = generateUUID();
+    
     await createStreamId({ streamId, chatId: id });
 
-    const stream = createUIMessageStream({
-      execute: async ({ writer: dataStream }) => {
-        const result = await streamText({
-          model: google('gemini-1.5-flash') as unknown as LanguageModel,
+    console.log('[api/chat/:id/stream] streamText start');
+    const stream = streamText({
+          model: google('gemini-2.5-flash'),
           system: ragSystemPrompt,
-          messages: modelMessages, 
+          messages: modelMessages,
+          onFinish: async ({ response }) => {
+            const assistantMessage = response.messages.find(m => m.role === 'assistant');
+            if (assistantMessage) {
+                try {
+                  await saveMessages({
+                    messages: [{
+                      id: generateUUID(),
+                      role: assistantMessage.role,
+                      parts: Array.isArray(assistantMessage.content)
+                        ? assistantMessage.content.map((c) => {
+                            if (c && typeof c === 'object' && 'text' in c && typeof (c as any).text === 'string') {
+                              return { type: 'text', text: (c as any).text };
+                            }
+                            return c as any;
+                          })
+                        : [{ type: 'text', text: assistantMessage.content as string }],
+                      createdAt: new Date(),
+                      attachments: [],
+                      chatId: id,
+                    }],
+                  });
+                  console.log('[api/chat/:id/stream] assistant message saved');
+                } catch (e) {
+                  console.error('[api/chat/:id/stream] failed to save assistant message', e);
+                }
+            }
+          }
         });
-
-        dataStream.merge(
-          result.toUIMessageStream({
-            sendReasoning: true,
-          }),
-        );
-      },
-      generateId: generateUUID,
-      onFinish: async ({ messages }) => {
-        const assistantMessage = messages.find(m => m.role === 'assistant');
-        if (assistantMessage) {
-            await saveMessages({
-              messages: [{
-                id: assistantMessage.id,
-                role: assistantMessage.role,
-                parts: assistantMessage.parts,
-                createdAt: new Date(),
-                attachments: [],
-                chatId: id,
-              }],
-            });
-        }
-      },
-      onError: () => {
-        return 'Oops, an error occurred!';
-      },
-    });
-
-    const streamContext = getStreamContext();
-
-    if (streamContext) {
-      return new Response(
-        await streamContext.resumableStream(streamId, () =>
-          stream.pipeThrough(new JsonToSseTransformStream()),
-        ),
-      );
-    } else {
-      return new Response(stream.pipeThrough(new JsonToSseTransformStream()));
-    }
+    console.log('[api/chat/:id/stream] returning stream response');
+    
+    return stream.toUIMessageStreamResponse();
   } catch (error) {
     if (error instanceof ChatSDKError) {
       return error.toResponse();

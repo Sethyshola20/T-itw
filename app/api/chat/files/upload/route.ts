@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createUIMessageStream, generateObject, GenerateObjectResult, generateText, JsonToSseTransformStream, ModelMessage, UIDataTypes, UIMessage } from 'ai';
+import { createUIMessageStream, generateObject, GenerateObjectResult, generateText, JsonToSseTransformStream, ModelMessage, streamObject, streamText, UIDataTypes, UIMessage } from 'ai';
 import { saveFile, saveFileFromUrl, validateFileType, validatePdfUrl } from '@/helper';
 import { EngineeringDeliverableObjectType, engineeringDeliverableSchema } from '@/types';
 import { SYSTEM_PROMPT } from '@/lib/constants';
@@ -8,11 +8,11 @@ import { generateUUID } from '@/lib/utils';
 import { google } from "@ai-sdk/google"
 
 
+
 export async function POST(req: Request) {
   try {
-    const formData = await req.formData();
-    const file = formData.get('file') as File | null;
-    const url = formData.get('url') as string | null;
+    const body = await req.json();
+    const { file, url } = body as { file: File | null, url: string | null}
 
     if (!file && !url) {
       return NextResponse.json({ error: 'No file or URL provided' }, { status: 400 });
@@ -45,7 +45,7 @@ export async function POST(req: Request) {
       fileDataUrl = `data:application/pdf;base64,${base64Data}`;
     }
 
-    const result = await generateObject({
+    const result = streamObject({
       model: google("gemini-2.5-flash"), 
       messages: [
         {
@@ -97,40 +97,16 @@ export async function POST(req: Request) {
 
     const documentText = textResult.text; 
 
-    console.log({result})
-
-    await storeEmbeddings(documentId, documentText, {
-      projectName: result .object.projectName,
-      documentType: result.object.documentType,
-      engineeringFirm: result.object.engineeringFirm,
-      filePath, 
+    result.object.then(obj => {
+      obj.documentId = documentId;
+      storeEmbeddings(documentId, documentText, {
+        projectName: obj.projectName,
+        documentType: obj.documentType,
+        engineeringFirm: obj.engineeringFirm,
+      });
     });
 
-
-    const { scopeDescription, remarks } = result.object;
-    const finalDocumentId = documentId; 
-
-    const metadataPayload = {
-        scopeDescription,
-        remarks,
-        documentId: finalDocumentId,
-    };
-
-    const dataChunk = {
-        type: 'data-metadata', 
-        id: generateUUID(),
-        data: metadataPayload, 
-        transient: true, 
-    } as const; 
-
-    const stream = createUIMessageStream({
-        execute: async ({ writer }) => writer.write(dataChunk),
-        onFinish: async () => {}, 
-        onError: () => 'Error streaming metadata.',
-        generateId: generateUUID,
-    });
-
-    return new Response(stream.pipeThrough(new JsonToSseTransformStream()), { status: 200 });
+    return result.toTextStreamResponse();
   } catch (error) {
     console.log({error})
     return NextResponse.json(

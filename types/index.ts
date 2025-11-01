@@ -5,6 +5,7 @@ import type { updateDocument } from '@/lib/ai/tools/update-document';
 import type { InferUITool, UIMessage } from 'ai';
 
 export const engineeringDeliverableSchema = z.object({
+  documentId:z.string(),
   projectName: z.string(),
   projectId: z.string().optional(),
   clientName: z.string(),
