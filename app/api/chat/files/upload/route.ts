@@ -18,12 +18,25 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { file, url } = body as { file: File | null, url: string | null}
 
+    const apiKey = req.headers.get('chat-api-key');
+
     const session = await auth.api.getSession({
-          headers: req.headers
-        });
+      headers: req.headers,
+    })
     
-    if (!session?.user) {
-      return new ChatSDKError('unauthorized:chat').toResponse();
+    if(!session?.user) {
+      return new ChatSDKError('unauthorized:auth').toResponse();
+    }
+    if (!apiKey) {
+      return new ChatSDKError('unauthorized:auth', 'Missing API key').toResponse();
+    }
+
+    const isValid = await auth.api.verifyApiKey({
+      body: { key: apiKey },
+    });
+
+    if (!isValid.valid) {
+      return new ChatSDKError('forbidden:auth', 'Invalid or rate-limited API key').toResponse();
     }
 
     if (!file && !url) {

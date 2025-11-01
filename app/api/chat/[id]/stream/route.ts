@@ -40,8 +40,22 @@ export async function POST(req: Request) {
       headers: req.headers,
     });
 
+    const apiKey = req.headers.get('chat-api-key');
+
     if (!session?.user) {
       return new ChatSDKError('unauthorized:chat').toResponse();
+    }
+    
+    if (!apiKey) {
+      return new ChatSDKError('unauthorized:auth', 'Missing API key').toResponse();
+    }
+
+    const result = await auth.api.verifyApiKey({
+      body: { key: apiKey },
+    });
+
+    if (!result.valid) {
+      return new ChatSDKError('forbidden:auth', 'Invalid or rate-limited API key').toResponse();
     }
 
     const chat = await getChatById({ id });
@@ -54,7 +68,6 @@ export async function POST(req: Request) {
         documentId,
         visibility: selectedVisibilityType,
       });
-      // Persist initial assistant welcome so it appears in history
       try {
         const welcomeText = `I've successfully loaded the document! How can I help you understand this engineering deliverable?`;
         await saveMessages({

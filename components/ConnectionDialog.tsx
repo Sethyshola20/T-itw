@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -23,10 +22,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SignInFormType, signinSchema, SignupFormType, signupSchema } from "@/types";
-import { SignIn } from "@/lib/sign-in";
-import { SignUp } from "@/lib/sign-up";
+import { useSignIn } from "@/lib/sign-in";
+import { useSignUp } from "@/lib/sign-up";
 
 export function ConnectionDialog() {
+  const signUp = useSignUp();
+  const signIn = useSignIn();
+
   const loginForm = useForm<SignInFormType>({
     resolver: zodResolver(signinSchema),
     defaultValues: {
@@ -44,13 +46,6 @@ export function ConnectionDialog() {
     },
   });
 
-  async function onSignInSubmit(values: SignInFormType) {
-    await SignIn(values)
-  }
-
-  async function onSignupSubmit(values: SignupFormType) {
-    await SignUp(values)
-  }
 
   return (
     <Dialog>
@@ -72,7 +67,7 @@ export function ConnectionDialog() {
 
           <TabsContent value="login">
             <Form {...loginForm}>
-              <form onSubmit={loginForm.handleSubmit(onSignInSubmit)} className="space-y-4">
+              <form onSubmit={loginForm.handleSubmit(signIn)} className="space-y-4">
                 <FormField
                   control={loginForm.control}
                   name="email"
@@ -108,7 +103,7 @@ export function ConnectionDialog() {
 
           <TabsContent value="signup">
             <Form {...signupForm}>
-              <form onSubmit={signupForm.handleSubmit(onSignupSubmit)} className="space-y-4">
+              <form onSubmit={signupForm.handleSubmit(signUp)} className="space-y-4">
                 <FormField
                   control={signupForm.control}
                   name="name"

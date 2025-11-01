@@ -11,6 +11,7 @@ import { VisibilityType } from "@/components/ui/visibility-selector";
 import { generateUUID } from "@/lib/utils";
 import { getStreamContext } from "@/utils";
 import { SYSTEM_PROMPT } from "@/lib/constants";
+import { apikey } from "@/lib/db/auth-schema";
 
 
 const pc = new Pinecone({
@@ -19,18 +20,31 @@ const pc = new Pinecone({
 
 const pineconeIndex = pc.index("engineering-docs");
 
-export async function POST(req: Request, res: Response) {
+export async function POST(req: Request) {
   try {
     const { message, id, documentId, selectedVisibilityType } :{ message: UIMessage, id:string, documentId: string, selectedVisibilityType: VisibilityType } = await req.json();
-    console.log('[api/chat] incoming', { id, documentId, selectedVisibilityType, parts: message?.parts });
+
+    const apiKey = req.headers.get('chat-api-key');
 
     const session = await auth.api.getSession({
-      headers: req.headers
-    });
-
-    if (!session?.user) {
+      headers: req.headers,
+    })
+    
+    if(!session?.user) {
       return new ChatSDKError('unauthorized:chat').toResponse();
     }
+    if (!apiKey) {
+      return new ChatSDKError('unauthorized:auth', 'Missing API key').toResponse();
+    }
+
+    const result = await auth.api.verifyApiKey({
+      body: { key: apiKey },
+    });
+
+    if (!result.valid) {
+      return new ChatSDKError('forbidden:auth', 'Invalid or rate-limited API key').toResponse();
+    }
+
     
     if (!message) {
       return NextResponse.json({ error: "message is required." }, { status: 400 });

@@ -16,7 +16,17 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export const fetcher = async (url: string) => {
-  const response = await fetch(url);
+  const apiKey = sessionStorage.getItem('chat-api-key')
+
+  if (!apiKey) {
+    throw new ChatSDKError('unauthorized:chat', 'No API key found');
+  }
+  
+  const response = await fetch(url,{
+    headers: {
+      'chat-api-key': apiKey, 
+    },
+  });
 
   if (!response.ok) {
     const { code, cause } = await response.json();
