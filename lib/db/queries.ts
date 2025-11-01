@@ -24,6 +24,7 @@ import {
   type Chat,
   stream,
 } from './schema';
+import { apikey } from './auth-schema'
 import type { ArtifactKind } from '@/components/ai-elements/artifact';
 import type { VisibilityType } from '@/components/ui/visibility-selector';
 import { ChatSDKError } from '../errors';
@@ -491,6 +492,18 @@ export async function createStreamId({
     throw new ChatSDKError(
       'bad_request:database',
       'Failed to create stream id',
+    );
+  }
+}
+
+export async function getUserAPIKeyByUserId({ userId }: { userId: string}){
+  try {
+    const [{ key }] = await db.select({ key: apikey.key }).from(apikey).where(eq(apikey.userId, userId)).execute()
+    return key
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to get apikey by user id',
     );
   }
 }

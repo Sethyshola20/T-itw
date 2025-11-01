@@ -19,18 +19,21 @@ import { experimental_useObject as useObject } from '@ai-sdk/react';
 import { EngineeringDeliverableObjectType, engineeringDeliverableSchema } from '@/types';
 import { Loader } from '../ai-elements/loader';
 import { useRouter } from 'next/navigation';
+import { ChatSDKError } from '@/lib/errors';
 
 
 
-export default function DocumentUploader({ setDocumentId, setShowUpload, setInitialMessage }:{ setDocumentId: React.Dispatch<React.SetStateAction<string | null>>, setShowUpload:React.Dispatch<React.SetStateAction<boolean>>, setInitialMessage: React.Dispatch<React.SetStateAction<EngineeringDeliverableObjectType | undefined>>}){
+export default function DocumentUploader({ setDocumentId, setShowUpload, setInitialMessage, apiKey }:{ setDocumentId: React.Dispatch<React.SetStateAction<string | null>>, setShowUpload:React.Dispatch<React.SetStateAction<boolean>>, setInitialMessage: React.Dispatch<React.SetStateAction<EngineeringDeliverableObjectType | undefined>>, apiKey: string }){
   
   const [files, setFiles] = useState<FileList | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const router = useRouter()
-
+    
   const { object, submit, isLoading, stop } = useObject({
     api: '/api/chat/files/upload',
     schema: engineeringDeliverableSchema,
+    headers: {
+      'chat-api-key': apiKey, 
+    },
   });
 
   const uploadSchema = z.object({

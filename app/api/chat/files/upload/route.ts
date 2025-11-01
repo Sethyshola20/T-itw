@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { createUIMessageStream, generateObject, GenerateObjectResult, generateText, JsonToSseTransformStream, ModelMessage, streamObject, streamText, UIDataTypes, UIMessage } from 'ai';
+import { generateText, streamObject } from 'ai';
 import { saveFile, saveFileFromUrl, validateFileType, validatePdfUrl } from '@/helper';
-import { EngineeringDeliverableObjectType, engineeringDeliverableSchema } from '@/types';
+import { engineeringDeliverableSchema } from '@/types';
 import { SYSTEM_PROMPT } from '@/lib/constants';
 import { storeEmbeddings } from '@/lib/embeding';
 import { generateUUID } from '@/lib/utils';
@@ -18,11 +18,13 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { file, url } = body as { file: File | null, url: string | null}
 
+    console.log('types :',{ file: typeof file, url: typeof url })
     const apiKey = req.headers.get('chat-api-key');
 
     const session = await auth.api.getSession({
       headers: req.headers,
     })
+
     
     if(!session?.user) {
       return new ChatSDKError('unauthorized:auth').toResponse();

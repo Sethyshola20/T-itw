@@ -35,7 +35,6 @@ export async function GET(request: NextRequest) {
     body: { key: apiKey },
   });
 
-  console.log(result)
   if (!result.valid) {
     return new ChatSDKError('forbidden:auth', 'Invalid or rate-limited API key').toResponse();
   }

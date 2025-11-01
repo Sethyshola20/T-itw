@@ -19,6 +19,7 @@ export async function validateFileType(file: File): Promise<string> {
     const isMimeAllowed = ALLOWED_TYPES.has(mimeType);
 
     if (!isMimeAllowed && !hasAllowedExtension) {
+      console.log(`Invalid file format. Expected PDF, got: ${mimeType || filename}`,)
       throw new Error(
         `Invalid file format. Expected PDF, got: ${mimeType || filename}`,
       );

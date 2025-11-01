@@ -11,6 +11,7 @@ import type { ChatMessage, ChatTools, CustomUIDataTypes } from '@/types';
 import { formatISO } from 'date-fns';
 import { DBMessage } from './db/schema';
 
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -41,7 +42,16 @@ export async function fetchWithErrorHandlers(
   init?: RequestInit,
 ) {
   try {
-    const response = await fetch(input, init);
+    const apiKey = sessionStorage.getItem('chat-api-key')
+
+    if (!apiKey) {
+      throw new ChatSDKError('unauthorized:chat', 'No API key found');
+    }
+    const options = {
+      ...init,
+      headers: { 'chat-api-key': apiKey, }
+    }
+    const response = await fetch(input, options);
 
     if (!response.ok) {
       const { code, cause } = await response.json();

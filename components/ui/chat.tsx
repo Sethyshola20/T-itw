@@ -52,6 +52,7 @@ export default function Chat({
   isReadonly,
   session,
   autoResume,
+  apiKey
 }: {
   id: string;
   initialMessage: EngineeringDeliverableObjectType | undefined;
@@ -62,6 +63,7 @@ export default function Chat({
   isReadonly: boolean;
   session: any;
   autoResume: boolean;
+  apiKey: string
 }) {
   const { visibilityType } = useChatVisibility({
     chatId: id,
