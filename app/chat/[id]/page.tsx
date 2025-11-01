@@ -31,8 +31,8 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
     id,
   });
 
-  const uiMessages = convertToUIMessages(messagesFromDb);
 
+  const uiMessages = convertToUIMessages(messagesFromDb);
   return (
     <div className="flex flex-col w-full max-w-2xl mx-auto max-h-full h-full">
       <Chat documentId={chat.documentId} initialMessage={undefined} session={session} autoResume={true} id={id} key={id} initialChatModel={myProvider.languageModel.name} initialMessages={uiMessages} isReadonly={false} initialVisibilityType="private"/>

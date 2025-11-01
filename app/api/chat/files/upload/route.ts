@@ -6,6 +6,10 @@ import { SYSTEM_PROMPT } from '@/lib/constants';
 import { storeEmbeddings } from '@/lib/embeding';
 import { generateUUID } from '@/lib/utils';
 import { google } from "@ai-sdk/google"
+import { generateTitleFromUserMessage } from '@/app/chat/actions';
+import { saveChat, saveMessages } from '@/lib/db/queries';
+import { auth } from '@/lib/auth';
+import { ChatSDKError } from '@/lib/errors';
 
 
 
@@ -14,19 +18,29 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { file, url } = body as { file: File | null, url: string | null}
 
+    const session = await auth.api.getSession({
+          headers: req.headers
+        });
+    
+    if (!session?.user) {
+      return new ChatSDKError('unauthorized:chat').toResponse();
+    }
+
     if (!file && !url) {
       return NextResponse.json({ error: 'No file or URL provided' }, { status: 400 });
     }
 
     let filePath = ''
     let fileDataUrl = '';
+    let fileName = '';
 
     const documentId = generateUUID()
+
 
     if (file) {
       await validateFileType(file);
       filePath = await saveFile(file, `${documentId}.pdf`);
-
+      fileName = file.name;
       const arrayBuffer = await file.arrayBuffer();
       const uint8Array = new Uint8Array(arrayBuffer);
       const base64Data = Buffer.from(uint8Array).toString('base64');
@@ -37,6 +51,7 @@ export async function POST(req: Request) {
     else if (url) {
       await validatePdfUrl(url);
       filePath = await saveFileFromUrl(url, `${documentId}.pdf`);
+      fileName = url.split('/').pop() || 'document.pdf';
 
       const response = await fetch(url);
       const arrayBuffer = await response.arrayBuffer();
@@ -96,16 +111,65 @@ export async function POST(req: Request) {
     });
 
     const documentText = textResult.text; 
-
-    result.object.then(obj => {
+    result.object.then((obj) => {
       obj.documentId = documentId;
+
       storeEmbeddings(documentId, documentText, {
         projectName: obj.projectName,
         documentType: obj.documentType,
         engineeringFirm: obj.engineeringFirm,
       });
+
+      const titlePromise = generateTitleFromUserMessage({
+        message: {
+          id: generateUUID(),
+          role: "system",
+          parts: [
+            {
+              type: "text",
+              text: `Generate a concise title for this document based on its filename: "${fileName}"`,
+            },
+          ],
+        },
+      });
+
+      titlePromise
+        .then(async (title) => {
+          const chatId = generateUUID();
+          await saveChat({
+            id: chatId,
+            userId: session.user.id,
+            title,
+            documentId,
+            visibility: "private",
+          });
+
+          await saveMessages({
+            messages: [
+              {
+                chatId,
+                id: generateUUID(),
+                role: "assistant",
+                parts: [
+                  {
+                    type: "text",
+                    text: `I've successfully loaded "${fileName}". Here is a structured summary:\n\n\`\`\`json\n${JSON.stringify(obj, null, 2)}\n\`\`\``,
+                  },
+                ],
+                attachments: [],
+                createdAt: new Date(),
+              },
+            ],
+          });
+          console.log("[upload] Created chat and linked message:", chatId);
+        })
+        .catch((e) => {
+          console.error("[upload] Failed during title/chat/message chain", e);
+        });
     });
 
+     
+    
     return result.toTextStreamResponse();
   } catch (error) {
     console.log({error})

@@ -9,7 +9,7 @@ import { DataStreamHandler } from '@/components/ui/data-stream-handler';
 import { authClient } from '@/lib/auth-client';
 import { generateUUID } from '@/lib/utils';
 import { myProvider } from '@/lib/ai/providers';
-import { ChatMessage, EngineeringDeliverableObjectType } from '@/types';
+import { EngineeringDeliverableObjectType } from '@/types';
 
 
 export default function DocumentChatPage() {
@@ -23,11 +23,8 @@ export default function DocumentChatPage() {
   
   return (
     <div className="flex flex-col w-full max-w-2xl mx-auto py-16 max-h-full h-full">
-      {showUpload && <DocumentUploader setDocumentId={setDocumentId} setShowUpload={setShowUpload} setInitialMessage={setInitialMessage}/>}
-
-      <Separator className="my-6" />
-
-      <Chat documentId={documentId} session={session} autoResume={true} id={id} key={id} initialChatModel={myProvider.languageModel.name} initialMessages={[]} initialMessage={initialMessage} isReadonly={false} initialVisibilityType="private"/>
+      {showUpload ? <DocumentUploader setDocumentId={setDocumentId} setShowUpload={setShowUpload} setInitialMessage={setInitialMessage}/> :
+       <Chat documentId={documentId} session={session} autoResume={true} id={id} key={id} initialChatModel={myProvider.languageModel.name} initialMessages={[]} initialMessage={initialMessage} isReadonly={false} initialVisibilityType="private"/>}
       <DataStreamHandler/>
       <Toaster />
     </div>

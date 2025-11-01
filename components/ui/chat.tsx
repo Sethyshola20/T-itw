@@ -39,9 +39,9 @@ import { Artifact, ChatArtifact } from '@/components/ai-elements/artifact';
 import { useAutoResume } from '@/hooks/use-auto-resume';
 import { VisibilityType } from './visibility-selector';
 import { useChatVisibility } from '@/hooks/use-chat-visibility';
-import { useDataStream } from './data-stream-provider';
 import { ChatSDKError } from '@/lib/errors';
 import { getChatHistoryPaginationKey } from './sidebar-history';
+
 export default function Chat({
   id,
   initialMessage,
@@ -83,7 +83,7 @@ export default function Chat({
     resumeStream,
   } = useChat<ChatMessage>({
     id,
-    messages: [],
+    messages: initialMessages || [],
     experimental_throttle: 100,
     generateId: generateUUID,
     transport: new DefaultChatTransport({
@@ -133,22 +133,10 @@ export default function Chat({
       }
   }, [documentId,initialMessages.length, initialMessage, messages.length, setMessages]);
 
-  const searchParams = useSearchParams();
-  const query = searchParams.get('query');
-
-  const [hasAppendedQuery, setHasAppendedQuery] = useState(false);
 
   useEffect(() => {
-    if (query && !hasAppendedQuery) {
-      sendMessage({
-        role: 'user' as const,
-        parts: [{ type: 'text', text: query }],
-      });
-
-      setHasAppendedQuery(true);
       window.history.replaceState({}, '', `/chat/${id}`);
-    }
-  }, [query, sendMessage, hasAppendedQuery, id]);
+  }, [id]);
 
   const handleSubmit = (message: PromptInputMessage) => {
     sendMessage({ role: 'user', parts: [{ type: 'text', text: message.text! }] });

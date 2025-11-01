@@ -16,8 +16,9 @@ import { z } from "zod"
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { experimental_useObject as useObject } from '@ai-sdk/react';
-import { ChatMessage, EngineeringDeliverableObjectType, engineeringDeliverableSchema } from '@/types';
+import { EngineeringDeliverableObjectType, engineeringDeliverableSchema } from '@/types';
 import { Loader } from '../ai-elements/loader';
+import { useRouter } from 'next/navigation';
 
 
 
@@ -25,6 +26,7 @@ export default function DocumentUploader({ setDocumentId, setShowUpload, setInit
   
   const [files, setFiles] = useState<FileList | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter()
 
   const { object, submit, isLoading, stop } = useObject({
     api: '/api/chat/files/upload',
@@ -69,13 +71,13 @@ export default function DocumentUploader({ setDocumentId, setShowUpload, setInit
 
 
   useEffect(() => {
-    console.log(object)
     if (object?.documentId) {
       setDocumentId(object.documentId);
       setShowUpload(false);
       setInitialMessage(object as EngineeringDeliverableObjectType)
       toast.success('Document processed successfully!');
     }
+
   }, [object, setDocumentId, setShowUpload]);
 
 
