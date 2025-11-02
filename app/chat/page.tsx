@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Separator } from '@/components/ui/separator';
 import { Toaster } from '@/components/ui/sonner';
 import Chat from '../../components/ui/chat';
 import DocumentUploader from '@/components/ui/document-uploader';
@@ -28,7 +27,7 @@ export default function DocumentChatPage() {
       throw new ChatSDKError('unauthorized:chat', 'No API key found');
   }
   return (
-    <div className="flex flex-col w-full max-w-2xl mx-auto py-16 max-h-full h-full">
+    <div className="flex flex-col items-center justify-centerp w-full max-w-2xl mx-auto py-16 max-h-full h-full">
       {showUpload ? <DocumentUploader setDocumentId={setDocumentId} setShowUpload={setShowUpload} setInitialMessage={setInitialMessage} apiKey={apiKey}/> :
       <Chat documentId={documentId} session={session} autoResume={true} id={id} key={id} initialChatModel={myProvider.languageModel.name} initialMessages={[]} initialMessage={initialMessage} isReadonly={false} initialVisibilityType="private" apiKey={apiKey}/>}
       <DataStreamHandler/>

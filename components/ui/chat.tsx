@@ -116,6 +116,7 @@ export default function Chat({
   });
 
 
+
   useEffect(() => {
       if (documentId && initialMessage && messages.length === 0 && initialMessages.length === 0) {
 

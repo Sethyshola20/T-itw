@@ -19,11 +19,28 @@ const buttonVariants = cva(
         ghost:
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
+        cta: `
+          relative overflow-hidden text-accent font-semibold tracking-tight
+          bg-[linear-gradient(135deg,#1d4ed8_0%,#6366f1_50%,#7c3aed_100%)]
+          rounded-2xl shadow-lg
+          transition-all duration-300 ease-out
+          hover:scale-[1.05] hover:shadow-xl hover:brightness-105
+          active:scale-[0.98]
+          before:absolute before:inset-0 before:bg-[linear-gradient(176.87deg,#ffffff80_8.56%,#fff0_85.04%)]
+          before:opacity-50 before:rounded-2xl before:pointer-events-none
+        `,
+        connection: `
+          bg-primary text-accent w-full
+          transition-all duration-300 ease-out
+          hover:bg-primary/90
+          active:scale-[0.98]
+        `
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",
         sm: "h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5",
         lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
+        xl: "h-12 px-8 text-lg",
         icon: "size-9",
         "icon-sm": "size-8",
         "icon-lg": "size-10",

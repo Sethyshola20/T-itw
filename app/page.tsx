@@ -50,8 +50,9 @@ export default function Home() {
         ) : (
           <Button
             asChild
-            className="px-8 py-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-base font-medium shadow-md hover:shadow-lg transition"
-          >
+            variant="cta"
+            size="xl"
+            >
             <Link href="/chat">Launch Assistant</Link>
           </Button>
         )}

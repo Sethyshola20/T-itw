@@ -50,7 +50,7 @@ export function ConnectionDialog() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button className="bg-primary text-white transition rounded-xl">Connect</Button>
+        <Button variant="cta" size="xl">Connect</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
@@ -93,7 +93,7 @@ export function ConnectionDialog() {
                     </FormItem>
                   )}
                 />
-                <Button type="submit" className="w-full">
+                <Button type="submit" variant="connection">
                   Sign In
                 </Button>
               </form>
@@ -155,7 +155,7 @@ export function ConnectionDialog() {
                     </FormItem>
                   )}
                 />
-                <Button type="submit" className="w-full">
+                <Button type="submit" variant="connection">
                   Sign Up
                 </Button>
               </form>
