@@ -17,6 +17,7 @@ import { authClient } from '@/lib/auth-client';
 import { SidebarUserNav } from './sidebar-user-nav';
 import { MessageIcon } from './icons';
 import { User } from '@/lib/db/auth-schema';
+import { SidebarToggle } from './sidebar-toggle';
 
 export function AppSidebar() {
   const router = useRouter();
@@ -38,7 +39,7 @@ export function AppSidebar() {
               }}
               className="flex flex-row gap-3 items-center"
             >
-              <span className="text-lg text-brand font-semibold px-2 hover:bg-muted rounded-md cursor-pointer">
+              <span className="text-xl text-primary text-brand font-semibold px-2 hover:bg-muted rounded-md cursor-pointer">
                 Engineering AI
               </span>
             </Link>

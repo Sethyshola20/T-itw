@@ -7,6 +7,7 @@ import Chat from '@/components/ui/chat';
 import { myProvider } from '@/lib/ai/providers';
 import { convertToUIMessages } from '@/lib/utils';
 import { ChatSDKError } from '@/lib/errors';
+import { Toaster } from 'sonner';
 
 export default async function Page(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -26,7 +27,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
   if (chat.visibility === 'private' && session.user.id !== chat.userId) {
       return notFound();
   } 
-  
+
   const messagesFromDb = await getMessagesByChatId({
     id,
   });
@@ -46,6 +47,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
       <Chat documentId={chat.documentId} initialMessage={undefined} session={session} autoResume={true} id={id} key={id} initialChatModel={myProvider.languageModel.name} initialMessages={uiMessages} isReadonly={false} initialVisibilityType="private" apiKey={apiKey}/>
             
       <DataStreamHandler />
+      <Toaster/>
     </div>
   );
 }

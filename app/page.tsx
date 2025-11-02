@@ -12,6 +12,7 @@ import {
   AccordionTrigger,
   AccordionContent,
 } from "@/components/ui/accordion"
+import { MessageIcon } from "@/components/ui/icons";
 
 
 export default function Home() {
@@ -53,7 +54,7 @@ export default function Home() {
             variant="cta"
             size="xl"
             >
-            <Link href="/chat">Launch Assistant</Link>
+            <Link href="/chat"><MessageIcon/>Launch Assistant</Link>
           </Button>
         )}
       </section>

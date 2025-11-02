@@ -1,8 +1,9 @@
-import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import Script from 'next/script';
 import { ThemeProvider } from 'next-themes';
 import { AppSidebar } from '@/components/ui/app-sidebar';
 import { DataStreamProvider } from '@/components/ui/data-stream-provider';
+import { SidebarToggle } from '@/components/ui/sidebar-toggle';
 
 export const experimental_ppr = true;
 
@@ -26,7 +27,10 @@ export default async function Layout({
       <DataStreamProvider>
         <SidebarProvider defaultOpen={true}>
          <AppSidebar /> 
-          <SidebarInset>{children}</SidebarInset>
+          <SidebarInset className='flex flex-row'>
+            <SidebarToggle />
+            {children}  
+          </SidebarInset>
         </SidebarProvider>
       </DataStreamProvider>
    </ThemeProvider>
