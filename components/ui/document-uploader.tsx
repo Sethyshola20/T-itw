@@ -86,7 +86,7 @@ export default function DocumentUploader({
   }, [object, setDocumentId, setShowUpload]);
 
   return (
-    <div className="flex justify-center items-center w-full">
+    <div className="flex justify-center items-center w-200">
       <Card className="mb-6 shadow-xl border border-border/50 rounded-2xl w-full max-w-lg backdrop-blur-md">
         <CardHeader className="text-center space-y-2">
           <CardTitle className="text-xl font-semibold tracking-tight">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, Fragment, useRef } from 'react';
+import { useEffect, useState, useRef, Fragment } from 'react';
 import useSWR, { useSWRConfig } from 'swr';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
@@ -10,38 +10,48 @@ import {
   Conversation,
   ConversationContent,
   ConversationEmptyState,
+  ConversationScrollButton,
 } from '@/components/ai-elements/conversation';
-import { Message, MessageContent } from '@/components/ai-elements/message';
+import {
+  Branch,
+  BranchMessages,
+} from '@/components/ai-elements/branch';
+import {
+  Message,
+  MessageAvatar,
+  MessageContent,
+} from '@/components/ai-elements/message';
 import { Response } from '@/components/ai-elements/response';
-import { Loader } from '@/components/ai-elements/loader';
 import {
   PromptInput,
   PromptInputProvider,
-  PromptInputSubmit,
   PromptInputTextarea,
+  PromptInputSubmit,
   PromptInputFooter,
+  PromptInputHeader,
+  PromptInputBody,
   PromptInputTools,
   PromptInputButton,
-  PromptInputBody,
+  PromptInputAttachments,
+  PromptInputAttachment,
+  PromptInputActionMenu,
+  PromptInputActionMenuTrigger,
+  PromptInputActionMenuContent,
+  PromptInputActionAddAttachments,
   type PromptInputMessage,
 } from '@/components/ai-elements/prompt-input';
+import { Suggestion, Suggestions } from '@/components/ai-elements/suggestion';
 import { ChatHeader } from '@/components/ui/chat-header';
 import {
   CopyIcon,
   RefreshCcwIcon,
   GlobeIcon,
   ShareIcon,
-  MessageSquare,
   CheckIcon,
+  MessageSquare,
+  MicIcon,
 } from 'lucide-react';
-import { fetcher, fetchWithErrorHandlers, generateUUID } from '@/lib/utils';
-import type { ChatMessage } from '@/types';
-import type { Vote } from '@/lib/db/schema';
-import { useAutoResume } from '@/hooks/use-auto-resume';
-import { VisibilityType } from './visibility-selector';
-import { useChatVisibility } from '@/hooks/use-chat-visibility';
-import { ChatSDKError } from '@/lib/errors';
-import { getChatHistoryPaginationKey } from './sidebar-history';
+import { Loader } from '@/components/ai-elements/loader';
 import { Actions, Action } from '@/components/ai-elements/actions';
 import {
   Tooltip,
@@ -49,6 +59,28 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { fetcher, fetchWithErrorHandlers, generateUUID } from '@/lib/utils';
+import { useChatVisibility } from '@/hooks/use-chat-visibility';
+import { useAutoResume } from '@/hooks/use-auto-resume';
+import { getChatHistoryPaginationKey } from './sidebar-history';
+import { ChatSDKError } from '@/lib/errors';
+import type { ChatMessage } from '@/types';
+import type { Vote } from '@/lib/db/schema';
+import { VisibilityType } from './visibility-selector';
+
+const defaultSuggestions = [
+  'Summarize this engineering document',
+  'Highlight the key specifications and requirements',
+  'Generate a checklist for project implementation',
+  'Identify potential risks and mitigation strategies',
+  'Convert this technical report into a concise executive summary',
+  'Suggest improvements or optimizations in the design',
+  'Create a diagram or workflow based on this document',
+  'Compare this deliverable with industry best practices',
+  'Extract action items from this report',
+  'Provide a step-by-step implementation plan',
+];
+
 
 export default function Chat({
   id,
@@ -77,11 +109,12 @@ export default function Chat({
     chatId: id,
     initialVisibilityType,
   });
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const { mutate } = useSWRConfig();
 
   const [input, setInput] = useState('');
   const [webSearch, setWebSearch] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const { mutate } = useSWRConfig();
+  const [microphone, setMicrophone] = useState(false);
 
   const {
     messages,
@@ -117,6 +150,17 @@ export default function Chat({
     },
   });
 
+  // Auto resume logic
+  useAutoResume({ autoResume, initialMessages, resumeStream, setMessages });
+
+  // Scroll on new message
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages, status]);
+
+  // Load initial message (doc mode)
   useEffect(() => {
     if (
       documentId &&
@@ -124,22 +168,21 @@ export default function Chat({
       messages.length === 0 &&
       initialMessages.length === 0
     ) {
-      const jsonText = JSON.stringify(initialMessage, undefined, 2);
-      const text = `I've successfully loaded the document! Here’s the raw data:\n\n\`\`\`json\n${jsonText}\n\`\`\``;
-      setMessages([
-        { id: generateUUID(), role: 'assistant', parts: [{ type: 'text', text }] },
-      ]);
+      const jsonText = JSON.stringify(initialMessage, null, 2);
+      const text = `I've loaded your document successfully! Here’s the data:\n\n\`\`\`json\n${jsonText}\n\`\`\``;
+      setMessages([{ id: generateUUID(), role: 'assistant', parts: [{ type: 'text', text }] }]);
     }
   }, [documentId, initialMessages.length, initialMessage, messages.length, setMessages]);
 
-  useEffect(() => {
-    window.history.replaceState({}, '', `/chat/${id}`);
-  }, [id]);
-
   const handleSubmit = (message: PromptInputMessage) => {
     if (!message.text?.trim()) return;
-    sendMessage({ role: 'user', parts: [{ type: 'text', text: message.text! }] });
+    sendMessage({ role: 'user', parts: [{ type: 'text', text: message.text }] });
     setInput('');
+  };
+
+  const handleSuggestionClick = (suggestion: string) => {
+    setInput('');
+    sendMessage({ role: 'user', parts: [{ type: 'text', text: suggestion }] });
   };
 
   const { data: votes } = useSWR<Array<Vote>>(
@@ -147,17 +190,9 @@ export default function Chat({
     fetcher,
   );
 
-  useAutoResume({ autoResume, initialMessages, resumeStream, setMessages });
-
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages, status]);
-
   return (
-    <TooltipProvider>
-      <div className="flex flex-col w-full h-screen bg-background">
+    <div className='max-w-[75vw]'>
+      <div className="flex flex-col h-screen overflow-hidden bg-background">
         <ChatHeader
           chatId={id}
           selectedModelId={initialChatModel}
@@ -168,7 +203,7 @@ export default function Chat({
 
         <div
           ref={scrollRef}
-          className="flex-1 overflow-y-auto px-4 py-6 max-w-4xl mx-auto w-full scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent"
+          className="flex-1 overflow-y-auto px-4 py-6 scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent"
         >
           <Conversation>
             <ConversationContent>
@@ -176,79 +211,97 @@ export default function Chat({
                 <ConversationEmptyState
                   icon={<MessageSquare className="size-12" />}
                   title="No messages yet"
-                  description="Start a conversation to see messages here"
+                  description="Start chatting to see messages here"
                 />
               ) : (
                 messages.map((message) => (
-                  <Fragment key={message.id}>
-                    <Message from={message.role}>
-                      <MessageContent>
-                        <Response>
-                          {message.parts
-                            .map((part) =>
-                              part?.type === 'text'
-                                ? (part as any).text
-                                : (part as any).delta || '',
+                  <Branch key={message.id} defaultBranch={0}>
+                    <BranchMessages>
+                      <Message from={message.role}>
+                        <MessageContent>
+                          <Response>
+                            {message.parts
+                              .map(
+                                (p) => (p as any).text || (p as any).delta || '',
+                              )
+                              .join(' ')}
+                          </Response>
+                        </MessageContent>
+
+                        {/* Only show avatar for user messages */}
+                        {message.role === 'user' && (
+                          <MessageAvatar
+                            name="You"
+                            src="https://github.com/haydenbleasel.png"
+                          />
+                        )}
+                      </Message>
+
+                      {message.role === 'assistant' && (
+                        <MessageActions
+                          text={message.parts
+                            .map(
+                              (p) => (p as any).text || (p as any).delta || '',
                             )
                             .join(' ')}
-                        </Response>
-                      </MessageContent>
-                    </Message>
-
-                    {message.role === 'assistant' && (
-                      <MessageActions
-                        text={message.parts
-                          .map(
-                            (p) => (p as any).text || (p as any).delta || '',
-                          )
-                          .join(' ')}
-                        onRegenerate={regenerate}
-                      />
-                    )}
-                  </Fragment>
+                          onRegenerate={regenerate}
+                        />
+                      )}
+                    </BranchMessages>
+                  </Branch>
                 ))
               )}
-
               {status === 'submitted' && <Loader />}
             </ConversationContent>
+            <ConversationScrollButton />
           </Conversation>
         </div>
 
         {!isReadonly && (
-          <PromptInputProvider>
-            <PromptInput
-              onSubmit={handleSubmit}
-              className="sticky bottom-0 border-t bg-background py-2"
-            >
-              <PromptInputBody>
-                <PromptInputTextarea
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Type your message..."
+          <div className="border-t bg-background">
+            <Suggestions className="p-4">
+              {defaultSuggestions.map((s) => (
+                <Suggestion
+                  key={s}
+                  suggestion={s}
+                  onClick={() => handleSuggestionClick(s)}
                 />
-              </PromptInputBody>
+              ))}
+            </Suggestions>
 
-              <PromptInputFooter>
-                <PromptInputTools>
-                  <PromptInputButton
-                    variant={webSearch ? 'default' : 'ghost'}
-                    onClick={() => setWebSearch(!webSearch)}
-                  >
-                    <GlobeIcon size={16} />
-                    <span>Search</span>
-                  </PromptInputButton>
-                </PromptInputTools>
+            <PromptInputProvider>
+              <div className="px-4 pb-4">
+                <PromptInput onSubmit={handleSubmit} className="w-full">
+                  <PromptInputBody>
+                    <PromptInputTextarea
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      placeholder="Type your message..."
+                    />
+                  </PromptInputBody>
 
-                <PromptInputSubmit disabled={!input && !status} status={status} />
-              </PromptInputFooter>
-            </PromptInput>
-          </PromptInputProvider>
+                  <PromptInputFooter>
+                    <PromptInputTools>
+                      <PromptInputActionMenu>
+                        <PromptInputActionMenuContent>
+                        </PromptInputActionMenuContent>
+                      </PromptInputActionMenu>
+                    </PromptInputTools>
+
+                    <PromptInputSubmit
+                      disabled={!input.trim() || status === 'streaming'}
+                      status={status}
+                    />
+                  </PromptInputFooter>
+                </PromptInput>
+              </div>
+            </PromptInputProvider>
+          </div>
         )}
       </div>
-    </TooltipProvider>
+    </div>
   );
 }
-
 
 function MessageActions({
   text,
@@ -268,7 +321,7 @@ function MessageActions({
   const handleShare = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
-      toast.success('Chat link copied to clipboard!');
+      toast.success('Chat link copied!');
     } catch {
       toast.info('Share feature coming soon.');
     }
@@ -282,28 +335,29 @@ function MessageActions({
             <RefreshCcwIcon className="size-3" />
           </Action>
         </TooltipTrigger>
-        <TooltipContent side="top">Retry</TooltipContent>
+        <TooltipContent>Retry</TooltipContent>
       </Tooltip>
 
       <Tooltip>
         <TooltipTrigger asChild>
           <Action label={copied ? 'Copied!' : 'Copy'} onClick={handleCopy}>
             {copied ? (
-              <CheckIcon className="size-3 transition-all" />
+              <CheckIcon className="size-3" />
             ) : (
               <CopyIcon className="size-3" />
             )}
           </Action>
         </TooltipTrigger>
-        <TooltipContent side="top">{copied ? 'Copied!' : 'Copy'}</TooltipContent>
+        <TooltipContent>{copied ? 'Copied!' : 'Copy'}</TooltipContent>
       </Tooltip>
+
       <Tooltip>
         <TooltipTrigger asChild>
-            <Action label="Share" onClick={handleShare}>
-              <ShareIcon className="size-3" />
-            </Action>
+          <Action label="Share" onClick={handleShare}>
+            <ShareIcon className="size-3" />
+          </Action>
         </TooltipTrigger>
-        <TooltipContent side="top">Share</TooltipContent>
+        <TooltipContent>Share</TooltipContent>
       </Tooltip>
     </Actions>
   );
