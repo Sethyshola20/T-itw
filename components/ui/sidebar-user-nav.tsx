@@ -2,7 +2,6 @@
 
 import { ChevronUp } from 'lucide-react';
 import { useTheme } from 'next-themes';
-
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,16 +14,14 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { LoaderIcon } from './icons';
 import { Avatar, AvatarFallback, AvatarImage } from './avatar';
 import { SignOut } from '@/lib/sign-in';
+import { User } from '@/lib/db/auth-schema';
 
-export function SidebarUserNav({ user }: { user: any }) {
-  const router = useRouter();
+export function SidebarUserNav({ user }: { user: User | undefined }) {
   const { setTheme, resolvedTheme } = useTheme();
-
 
   return (
     <SidebarMenu>
@@ -49,8 +46,8 @@ export function SidebarUserNav({ user }: { user: any }) {
                 className="data-[state=open]:bg-sidebar-accent bg-background data-[state=open]:text-sidebar-accent-foreground h-10"
               >
                 <Avatar className="size-8 rounded-lg grayscale">
-                  <AvatarImage src={user.image ?? `https://avatar.vercel.sh/${user.email}`} alt={user.email ?? 'User Avatar'} />
-                  <AvatarFallback className="rounded-lg">{user.name?.charAt(0)}</AvatarFallback>
+                  <AvatarImage src={user?.image ?? `https://avatar.vercel.sh/${user?.email}`} alt={user?.email ?? 'User Avatar'} />
+                  <AvatarFallback className="rounded-lg">{user?.name?.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <span data-testid="user-email" className="truncate">
                   {user?.email}
@@ -67,7 +64,7 @@ export function SidebarUserNav({ user }: { user: any }) {
             <DropdownMenuItem
               data-testid="user-nav-item-theme"
               className="cursor-pointer"
-              onSelect={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+              onSelect={() => setTheme(resolvedTheme === 'light' ? 'dark' : 'light')}
             >
               {`Toggle ${resolvedTheme === 'light' ? 'dark' : 'light'} mode`}
             </DropdownMenuItem>
@@ -83,7 +80,6 @@ export function SidebarUserNav({ user }: { user: any }) {
                     return;
                   }
                     SignOut()
-                  
                 }}
               >
                 {'Sign out'}

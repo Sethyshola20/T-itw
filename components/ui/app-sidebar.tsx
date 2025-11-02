@@ -15,17 +15,15 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip"
 import { SidebarHistory } from './sidebar-history';
 import { authClient } from '@/lib/auth-client';
 import { SidebarUserNav } from './sidebar-user-nav';
+import { MessageIcon } from './icons';
+import { User } from '@/lib/db/auth-schema';
 
 export function AppSidebar() {
   const router = useRouter();
-  const { 
-        data: session, 
-        isPending, //loading state
-        error, //error object
-        refetch //refetch the session
-    } = authClient.useSession() 
+  const { data: session } = authClient.useSession() 
 
-  const user = session?.user;
+  const user = session?.user as User | undefined;
+
   const { setOpenMobile } = useSidebar();
 
   return (
@@ -52,11 +50,11 @@ export function AppSidebar() {
                   className="p-2 h-fit"
                   onClick={() => {
                     setOpenMobile(false);
-                    router.push('/');
+                    router.push('/chat');
                     router.refresh();
                   }}
                 >
-                 {/** <PlusIcon /> */}
+                 <MessageIcon />
                 </Button>
               </TooltipTrigger>
               <TooltipContent align="end">New Chat</TooltipContent>

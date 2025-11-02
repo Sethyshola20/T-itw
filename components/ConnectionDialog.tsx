@@ -50,7 +50,7 @@ export function ConnectionDialog() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline">Connect</Button>
+        <Button className="bg-primary text-white transition rounded-xl">Connect</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
@@ -64,7 +64,6 @@ export function ConnectionDialog() {
             <TabsTrigger value="login">Sign In</TabsTrigger>
             <TabsTrigger value="signup">Sign Up</TabsTrigger>
           </TabsList>
-
           <TabsContent value="login">
             <Form {...loginForm}>
               <form onSubmit={loginForm.handleSubmit(signIn)} className="space-y-4">

@@ -26,8 +26,8 @@ A Next.js app that allows users to upload PDF documents and chat with an AI assi
 
 ## Project Structure
 
-- `/components`: UI components such as `PDFUploader`, `ChatInput`, `ChatMessages`
-- `/app/api`: API endpoints (`upload.ts`, `chat.ts`)
+- `/components`: UI components such as `Chat`, `DocumentUploader`,
+- `/app/api`: API endpoints (`/chat/files/upload/route.ts`, `/chat/route.ts`, `/chat/[id]/stream/route.ts`, `/chat/history/route.ts`)
 - `/page.tsx`: Main chat page integrating components and state management
 - `/types`: TypeScript types and validation schemas
 

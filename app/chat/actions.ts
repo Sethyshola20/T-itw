@@ -1,6 +1,6 @@
 'use server';
 
-import { generateText, LanguageModel, streamText, type UIMessage } from 'ai';
+import { generateText, type UIMessage } from 'ai';
 import { cookies } from 'next/headers';
 import { deleteMessagesByChatIdAfterTimestamp, getMessageById, updateChatVisiblityById, } from '@/lib/db/queries';
 

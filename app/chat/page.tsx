@@ -30,7 +30,7 @@ export default function DocumentChatPage() {
   return (
     <div className="flex flex-col w-full max-w-2xl mx-auto py-16 max-h-full h-full">
       {showUpload ? <DocumentUploader setDocumentId={setDocumentId} setShowUpload={setShowUpload} setInitialMessage={setInitialMessage} apiKey={apiKey}/> :
-       <Chat documentId={documentId} session={session} autoResume={true} id={id} key={id} initialChatModel={myProvider.languageModel.name} initialMessages={[]} initialMessage={initialMessage} isReadonly={false} initialVisibilityType="private" apiKey={apiKey}/>}
+      <Chat documentId={documentId} session={session} autoResume={true} id={id} key={id} initialChatModel={myProvider.languageModel.name} initialMessages={[]} initialMessage={initialMessage} isReadonly={false} initialVisibilityType="private" apiKey={apiKey}/>}
       <DataStreamHandler/>
       <Toaster />
     </div>

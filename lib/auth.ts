@@ -15,13 +15,13 @@ export const auth = betterAuth({
       rateLimit: {
         enabled: true,
         timeWindow: 1000 * 60 * 60, // 1 hour
-        maxRequests: 100,
+        maxRequests: 1000,
       },
     }),
   ],
     rateLimit: {
         window: 10, // time window in seconds
-        max: 100, // max requests in the window
+        max: 1000, // max requests in the window
     },
     session: {
         expiresIn: 60 * 60 * 24 * 7, // 7 days

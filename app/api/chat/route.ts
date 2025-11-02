@@ -1,18 +1,13 @@
 import { NextResponse } from "next/server";
-import { streamText, UIMessage, convertToModelMessages, embed, JsonToSseTransformStream, smoothStream, stepCountIs, createUIMessageStream } from "ai";
+import { streamText, UIMessage, convertToModelMessages, embed, JsonToSseTransformStream, createUIMessageStream } from "ai";
 import { google } from "@ai-sdk/google"
 import { Pinecone } from "@pinecone-database/pinecone";
-import { myProvider } from "@/lib/ai/providers";
 import { ChatSDKError } from "@/lib/errors";
 import { auth } from "@/lib/auth";
 import { createStreamId, deleteChatById, getChatById, saveChat, saveMessages } from "@/lib/db/queries";
 import { generateTitleFromUserMessage } from "@/app/chat/actions";
 import { VisibilityType } from "@/components/ui/visibility-selector";
 import { generateUUID } from "@/lib/utils";
-import { getStreamContext } from "@/utils";
-import { SYSTEM_PROMPT } from "@/lib/constants";
-import { apikey } from "@/lib/db/auth-schema";
-
 
 const pc = new Pinecone({
   apiKey: process.env.PINECONE_API_KEY!,

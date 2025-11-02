@@ -19,7 +19,7 @@ import { experimental_useObject as useObject } from '@ai-sdk/react';
 import { EngineeringDeliverableObjectType, engineeringDeliverableSchema } from '@/types';
 import { Loader } from '../ai-elements/loader';
 
-export default function DocumentUploader({ setDocumentId, setShowUpload, setInitialMessage, apiKey }:{ setDocumentId: React.Dispatch<React.SetStateAction<string | null>>, setShowUpload:React.Dispatch<React.SetStateAction<boolean>>, setInitialMessage: React.Dispatch<React.SetStateAction<EngineeringDeliverableObjectType | undefined>>, apiKey: string }){
+export default function DocumentUploader({ setDocumentId, setShowUpload, setInitialMessage, apiKey }: { setDocumentId: React.Dispatch<React.SetStateAction<string | null>>, setShowUpload:React.Dispatch<React.SetStateAction<boolean>>, setInitialMessage: React.Dispatch<React.SetStateAction<EngineeringDeliverableObjectType | undefined>>, apiKey: string }){
   
   const [files, setFiles] = useState<FileList | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -79,51 +79,52 @@ export default function DocumentUploader({ setDocumentId, setShowUpload, setInit
 
   }, [object, setDocumentId, setShowUpload]);
 
-
     return (
-    <Card className="mb-6 shadow-lg">
-      <CardHeader>
-        <CardTitle>Document Upload</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <div className="space-y-3">
-            <Input
-              type="file"
-              accept="application/pdf"
-              className="cursor-pointer"
-              multiple={false}
-              ref={fileInputRef}
-              onChange={(e) => e.target.files && setFiles(e.target.files)}
-            />
-            <FormField
-              control={form.control}
-              name="url"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Input placeholder="Or enter a document URL..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button
-              type="button"
-              onClick={handleUpload}
-              disabled={isLoading}
-              className="w-full"
-            >
-              {isLoading ? <span>Processing Document...<Loader/></span> : 'Start Analysis'}
-            </Button>
-            {isLoading && (
-              <Button type="button" variant="outline" onClick={() => stop()}>
-                Stop
-              </Button>
-            )}
-          </div>
-        </Form>
-      </CardContent>
-    </Card>
+      <div className='flex justify-center items-center size-full'>
+        <Card className="mb-6 shadow-lg h-fit w-full">
+          <CardHeader>
+            <CardTitle>Document Upload</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <div className="space-y-3">
+                <Input
+                  type="file"
+                  accept="application/pdf"
+                  className="cursor-pointer"
+                  multiple={false}
+                  ref={fileInputRef}
+                  onChange={(e) => e.target.files && setFiles(e.target.files)}
+                />
+                <FormField
+                  control={form.control}
+                  name="url"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input placeholder="Or enter a document URL..." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button
+                  type="button"
+                  onClick={handleUpload}
+                  disabled={isLoading}
+                  className="w-full"
+                >
+                  {isLoading ? <span>Processing Document...<Loader/></span> : 'Start Analysis'}
+                </Button>
+                {isLoading && (
+                  <Button type="button" variant="outline" onClick={() => stop()}>
+                    Stop
+                  </Button>
+                )}
+              </div>
+            </Form>
+          </CardContent>
+        </Card>
+      </div>
   );
 }
