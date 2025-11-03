@@ -6,7 +6,6 @@ import { auth } from '@/lib/auth';
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
 
-
   const limit = Number.parseInt(searchParams.get('limit') || '10');
   const startingAfter = searchParams.get('starting_after');
   const endingBefore = searchParams.get('ending_before');
@@ -18,7 +17,7 @@ export async function GET(request: NextRequest) {
     ).toResponse();
   }
 
-  const apiKey = request.headers.get('chat-api-key');
+
 
   const session = await auth.api.getSession({
     headers: request.headers,
@@ -26,17 +25,6 @@ export async function GET(request: NextRequest) {
   
   if(!session?.user) {
     return new ChatSDKError('unauthorized:chat').toResponse();
-  }
-  if (!apiKey) {
-    return new ChatSDKError('unauthorized:chat', 'Missing API key').toResponse();
-  }
-
-  const result = await auth.api.verifyApiKey({
-    body: { key: apiKey },
-  });
-
-  if (!result.valid) {
-    return new ChatSDKError('forbidden:auth', 'Invalid or rate-limited API key').toResponse();
   }
 
   const chats = await getChatsByUserId({

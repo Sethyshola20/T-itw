@@ -13,11 +13,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (
-    !session &&
-    (request.nextUrl.pathname.startsWith("/api/query") ||
-      request.nextUrl.pathname.startsWith("/api/upload"))
-  ) {
+  if (!session && request.nextUrl.pathname.startsWith("/api/chat")) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
@@ -25,5 +21,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/chat/:path*", "/api/query/:path*", "/api/upload/:path*"],
+  matcher: ["/chat/:path*", "/api/chat/:path*", "/api/upload/:path*"],
 };
