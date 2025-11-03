@@ -8,9 +8,6 @@ const pc = new Pinecone({
 
 const index = pc.index("engineering-docs");
 
-/**
- * Search for similar documents using Pinecone embeddings.
- */
 export async function searchDocuments(
   query: string,
   limit: number = 5,
@@ -18,19 +15,19 @@ export async function searchDocuments(
   threshold: number = 0.5,
   topK = 5, 
 ) {
-  // 1️⃣ Embed the query using AI SDK
+
   const embedding = await generateEmbedding(query)
 
-   // 2️⃣ Query Pinecone
+
   const results = await index.query({
     vector: embedding,
-    topK: topK * 2, // fetch extra to filter manually
+    topK: topK * 2,
     filter: { documentId },
     includeMetadata: true,
     includeValues: true,
   });
 
-  // 3️⃣ Compute cosine similarity and filter
+
   const scoredChunks = (results.matches ?? [])
     .map((match) => ({
       similarity: cosineSimilarity(embedding, match.values!),

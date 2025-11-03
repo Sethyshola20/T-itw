@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { streamObject } from 'ai';
 import { preparePdfFile } from '@/helper';
-import { EngineeringDeliverableObjectType, engineeringDeliverableSchema } from '@/types';
+import { engineeringDeliverableSchema } from '@/types';
 import { SYSTEM_PROMPT } from '@/lib/constants';
 import { storeEmbeddings } from '@/lib/embeding';
 import { generateUUID } from '@/lib/utils';
