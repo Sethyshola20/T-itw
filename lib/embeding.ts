@@ -1,6 +1,7 @@
 import { Pinecone } from "@pinecone-database/pinecone";
 import { google } from "@ai-sdk/google"
 import { embedMany, cosineSimilarity, embed } from "ai";
+import { chunkContent } from "./chunking";
 
 export const pinecone = new Pinecone({ apiKey: process.env.PINECONE_API_KEY! });
 
@@ -40,33 +41,32 @@ export async function storeEmbeddings(
   metadata: Record<string, any> = {}
 ) {
   try {
-    const chunks = splitText(text);
+    const chunks = await chunkContent(text);
 
-    for (let i = 0; i < chunks.length; i++) {
-      const chunkText = chunks[i];
+    console.log(`[storeEmbeddings] Splitting into ${chunks.length} chunks...`);
 
-      const { embedding } = await embed({
-        model: google.textEmbedding("text-embedding-004"),
-        value: chunkText,
-      })
+    const { embeddings } = await embedMany({
+      model: google.textEmbedding("text-embedding-004"),
+      values: chunks,
+    });
 
-      const vector = {
-        id: `${documentId}_${i}`,
-        values: embedding,
-        metadata: {
-          ...metadata,
-          documentId,
-          chunkIndex: i,
-          textPreview: chunkText.slice(0, 200),
-        },
-      };
+    const vectors = chunks.map((chunk, i) => ({
+      id: `${documentId}_${i}`,
+      values: embeddings[i],
+      metadata: {
+        ...metadata,
+        documentId,
+        chunkIndex: i,
+        textPreview: chunk.slice(0, 200),
+      },
+    }));
 
-      await index.upsert([vector]);
-    }
+    await index.upsert(vectors);
 
-    console.log(`Stored ${chunks.length} chunks for ${documentId} in Pinecone.`);
+    console.log(`[storeEmbeddings] Stored ${vectors.length} chunks for ${documentId}`);
+    return { success: true, count: vectors.length };
   } catch (error) {
-    console.error("Pinecone embedding error:", error);
+    console.error("[storeEmbeddings] Pinecone embedding error:", error);
     throw error;
   }
 }

@@ -146,21 +146,21 @@ export default function Chat({
     }),
     onFinish: () => mutate(unstable_serialize(getChatHistoryPaginationKey)),
     onError: (error) => {
-      if (error instanceof ChatSDKError) toast.error(error.message);
+      setMessages([{ id: generateUUID(), role: 'assistant', parts: [{ type: 'text', text:'I could not find relevant information for that question in this document.' }] }]);
+      toast.error(error instanceof Error ? error.message : 'Unexpected error');      
     },
   });
 
-  // Auto resume logic
   useAutoResume({ autoResume, initialMessages, resumeStream, setMessages });
 
-  // Scroll on new message
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, status]);
 
-  // Load initial message (doc mode)
+
   useEffect(() => {
     if (
       documentId &&
@@ -191,7 +191,7 @@ export default function Chat({
   );
 
   return (
-    <div className='max-w-[75vw]'>
+    <div className='max-w-[80%]'>
       <div className="flex flex-col h-screen overflow-hidden bg-background">
         <ChatHeader
           chatId={id}
@@ -215,8 +215,7 @@ export default function Chat({
                 />
               ) : (
                 messages.map((message) => (
-                  <Branch key={message.id} defaultBranch={0}>
-                    <BranchMessages>
+                  <>
                       <Message from={message.role}>
                         <MessageContent>
                           <Response>
@@ -247,8 +246,7 @@ export default function Chat({
                           onRegenerate={regenerate}
                         />
                       )}
-                    </BranchMessages>
-                  </Branch>
+                    </>
                 ))
               )}
               {status === 'submitted' && <Loader />}

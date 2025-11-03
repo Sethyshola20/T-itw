@@ -7,6 +7,46 @@ import { pipeline } from 'stream/promises';
 import { createWriteStream } from 'fs';
 import { Readable } from 'stream';
 import { ALLOWED_EXTENSIONS, ALLOWED_TYPES } from '@/lib/constants';
+import { chunkContent } from '@/lib/chunking';
+import { generateEmbeddings } from '@/lib/embeddings';
+import { index, splitText, storeEmbeddings } from '@/lib/embeding';
+import { generateUUID } from '@/lib/utils';
+
+
+export async function preparePdfFile(fileOrUrl: File | string, documentId: string) {
+  let filePath = '';
+  let fileName = '';
+  let fileDataUrl = '';
+  let documentText = '';
+
+ 
+  if (typeof fileOrUrl === 'string') {
+    await validatePdfUrl(fileOrUrl);
+    fileName = fileOrUrl.split('/').pop() || 'document.pdf';
+    filePath = await saveFileFromUrl(fileOrUrl, `${documentId}.pdf`);
+    fileDataUrl = await fetchUrlAsDataURL(fileOrUrl);
+    documentText = await extractTextFromPdfBuffer(filePath);
+  } else {
+    await validateFileType(fileOrUrl);
+    fileName = fileOrUrl.name;
+    filePath = await saveFile(fileOrUrl, `${documentId}.pdf`);
+    fileDataUrl = await fileToDataURL(fileOrUrl);
+    documentText = await extractTextFromPdfBuffer(filePath);
+  }
+
+  return { filePath, fileName, fileDataUrl, documentText };
+}
+
+async function extractTextFromPdfBuffer(filePath: string): Promise<string> {
+  const fs = await import('fs/promises');
+  const buffer = await fs.readFile(filePath);
+  const uint8Array = new Uint8Array(buffer);       
+  const parser = new PDFParse(uint8Array)
+  const parsed = await parser.getText();
+  if (!parsed.text?.trim()) throw new Error('No text could be extracted from PDF.');
+  return parsed.text;
+}
+
 
 export async function validateFileType(file: File): Promise<string> {
   try {
@@ -116,8 +156,56 @@ export async function saveFile(file: File, saveAs: string): Promise<string> {
   }
 }
 
+export async function fileToDataURL(file: File): Promise<string> {
+  const arrayBuffer = await file.arrayBuffer();
+  const base64 = Buffer.from(arrayBuffer).toString("base64");
+  return `data:${file.type};base64,${base64}`;
+}
+
+export async function fetchUrlAsDataURL(url: string): Promise<string> {
+  const res = await fetch(url);
+  const arrayBuffer = await res.arrayBuffer();
+  const base64 = Buffer.from(arrayBuffer).toString("base64");
+  return `data:application/pdf;base64,${base64}`;
+}
 
 
+export async function processPdfFile(fileOrUrl: File | string, metadata: Record<string, any> = {}) {
+  try {
+    const documentId = generateUUID();
+    let text = "";
+
+    if (typeof fileOrUrl === "string") {
+      const parser = new PDFParse({ url: fileOrUrl });
+      const result = await parser.getText();
+      text = result.text;
+    } else {
+      const bytes = await fileOrUrl.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+      const parser = new PDFParse(buffer);
+      const result = await parser.getText();
+      text = result.text;
+    }
+
+    if (!text || text.trim().length === 0) {
+      throw new Error("No text could be extracted from PDF. It may be scanned or image-only.");
+    }
+
+    await storeEmbeddings(documentId, text, metadata);
+
+    return {
+      success: true,
+      documentId,
+      message: "PDF processed and embeddings stored in Pinecone.",
+    };
+  } catch (error) {
+    console.error("[processPdfFile] error:", error);
+    return {
+      success: false,
+      error: (error as Error).message,
+    };
+  }
+}
 
 export async function saveFileFromUrl(url: string, saveAs: string): Promise<string> {
   try {

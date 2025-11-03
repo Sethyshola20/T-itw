@@ -27,8 +27,7 @@ export default async function Layout({
       <DataStreamProvider>
         <SidebarProvider defaultOpen={true}>
          <AppSidebar /> 
-          <SidebarInset className='flex flex-row'>
-            <SidebarToggle />
+          <SidebarInset >
             {children}  
           </SidebarInset>
         </SidebarProvider>
