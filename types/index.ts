@@ -1,6 +1,4 @@
 import { z } from 'zod';
-import type { createDocument } from '@/lib/ai/tools/create-document';
-import type { updateDocument } from '@/lib/ai/tools/update-document';
 
 import type { InferUITool, UIMessage } from 'ai';
 
@@ -78,9 +76,9 @@ export const messageMetadataSchema = z.object({
 
 export type MessageMetadata = z.infer<typeof messageMetadataSchema>;
 
-
-type createDocumentTool = InferUITool<ReturnType<typeof createDocument>>;
-type updateDocumentTool = InferUITool<ReturnType<typeof updateDocument>>;
+// TO CHANGE
+type createDocumentTool = InferUITool<ReturnType<any>>;
+type updateDocumentTool = InferUITool<ReturnType<any>>
 
 
 export type ChatTools = {
