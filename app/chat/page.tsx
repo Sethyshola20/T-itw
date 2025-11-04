@@ -10,7 +10,7 @@ import { generateUUID } from '@/lib/utils';
 import { myProvider } from '@/lib/ai/providers';
 import { EngineeringDeliverableObjectType } from '@/types';
 import { ChatSDKError } from '@/lib/errors';
-
+import { useKey } from '@/store';
 
 export default function DocumentChatPage() {
   const [showUpload, setShowUpload] = useState(true);
@@ -21,7 +21,7 @@ export default function DocumentChatPage() {
   
   const { data: session } = authClient.useSession() 
   
-  const apiKey = sessionStorage.getItem('chat-api-key')
+  const apiKey = useKey(state=> state.apiKey)
   
   if (!apiKey) {
       throw new ChatSDKError('unauthorized:chat', 'No API key found');

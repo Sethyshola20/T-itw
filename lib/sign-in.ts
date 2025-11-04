@@ -1,6 +1,7 @@
 import { SignInFormType, signinSchema } from "@/types";
 import { authClient } from "./auth-client";
 import { toast } from "sonner"
+import { useKey } from "@/store";
  
 export function useSignIn() {
      const signIn = async (authData: SignInFormType)=> {
@@ -33,7 +34,9 @@ export async function SignOut(){
     await authClient.signOut({
         fetchOptions: {
             onSuccess: () => {
-                sessionStorage.removeItem('chat-api-key');
+                const store = useKey.getState();
+                store.setApiKey("");
+
                 window.location.href = ("/")
             },
             onError: ctx => {
@@ -52,7 +55,9 @@ export async function createApiKey(){
             
         if (response.ok) {
             const data = await response.json() as { success: boolean, keyId: string, key: string }
-            sessionStorage.setItem('chat-api-key', data.key);
+            const store = useKey.getState();
+            store.setApiKey(data.key);
+
             window.location.href = "/chat";
         } else {
             toast.error("Failed to setup user session");

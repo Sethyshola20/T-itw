@@ -10,6 +10,7 @@ import { ChatSDKError, type ErrorCode } from './errors';
 import type { ChatMessage, ChatTools, CustomUIDataTypes } from '@/types';
 import { formatISO } from 'date-fns';
 import { DBMessage } from './db/schema';
+import { useKey } from '@/store';
 
 
 export function cn(...inputs: ClassValue[]) {
@@ -17,7 +18,9 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export const fetcher = async (url: string) => {
-  const apiKey = sessionStorage.getItem('chat-api-key')
+  const store = useKey.getState();
+  const { apiKey } = store
+
 
   if (!apiKey) {
     throw new ChatSDKError('unauthorized:chat', 'No API key found');
@@ -42,7 +45,9 @@ export async function fetchWithErrorHandlers(
   init?: RequestInit,
 ) {
   try {
-    const apiKey = sessionStorage.getItem('chat-api-key')
+    const store = useKey.getState();
+    const { apiKey } = store
+
 
     if (!apiKey) {
       throw new ChatSDKError('unauthorized:chat', 'No API key found');
