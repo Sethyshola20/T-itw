@@ -1,3 +1,5 @@
+Access the app at https://t-itw.vercel.app/
+
 # AI Document Chat Assistant
 
 A Next.js app that allows users to upload PDF documents and chat with an AI assistant that answers questions based on the document content using Retrieval-Augmented Generation (RAG) with Gemini
