@@ -82,17 +82,21 @@ export default function Home() {
 
       
       {/* --- FAQ Section for Temelion team --- */}
-      <section className="relative z-10 w-4xl mx-auto py-24 border-t border-slate-100">
-        <h2 className="text-4xl font-semibold text-center mb-12">
+      <section className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-24 border-t border-slate-100">
+        <h2 className="text-3xl sm:text-4xl font-semibold text-center mb-8 sm:mb-12">
           Frequently Asked Questions
         </h2>
 
-        <Accordion type="single" collapsible className="w-full space-y-4">
+        <Accordion
+          type="single"
+          collapsible
+          className="w-full space-y-3 sm:space-y-4"
+        >
           <AccordionItem value="item-1">
-            <AccordionTrigger className="text-lg font-medium text-left">
+            <AccordionTrigger className="text-base sm:text-lg font-medium text-left">
               What’s the goal of this project?
             </AccordionTrigger>
-            <AccordionContent className="text-slate-600">
+            <AccordionContent className="text-sm sm:text-base text-slate-600 leading-relaxed">
               This project is designed as a prototype demonstrating an AI workflow that mirrors
               Temelion’s mission — helping engineering firms understand and act on documentation faster.
               It shows how LLMs and structured reasoning can augment pre-construction analysis.
@@ -100,10 +104,10 @@ export default function Home() {
           </AccordionItem>
 
           <AccordionItem value="item-2">
-            <AccordionTrigger className="text-lg font-medium text-left">
+            <AccordionTrigger className="text-base sm:text-lg font-medium text-left">
               How does it connect to Temelion’s value proposition?
             </AccordionTrigger>
-            <AccordionContent className="text-slate-600">
+            <AccordionContent className="text-sm sm:text-base text-slate-600 leading-relaxed">
               Temelion focuses on automating the reading, summarizing, and decision-making process for
               tender documentation. This assistant follows that exact direction: document ingestion,
               contextual understanding, and agentic task sequencing.
@@ -111,10 +115,10 @@ export default function Home() {
           </AccordionItem>
 
           <AccordionItem value="item-3">
-            <AccordionTrigger className="text-lg font-medium text-left">
+            <AccordionTrigger className="text-base sm:text-lg font-medium text-left">
               What technologies are used?
             </AccordionTrigger>
-            <AccordionContent className="text-slate-600">
+            <AccordionContent className="text-sm sm:text-base text-slate-600 leading-relaxed">
               The prototype runs on Next.js (frontend), integrates with a local document parser
               (PDF/Docx ingestion), and uses a Retrieval-Augmented Generation pipeline powered by
               modern LLM APIs. The UI leverages shadcn/ui for a clean, maintainable design.
@@ -122,10 +126,10 @@ export default function Home() {
           </AccordionItem>
 
           <AccordionItem value="item-4">
-            <AccordionTrigger className="text-lg font-medium text-left">
+            <AccordionTrigger className="text-base sm:text-lg font-medium text-left">
               What’s next if developed further?
             </AccordionTrigger>
-            <AccordionContent className="text-slate-600">
+            <AccordionContent className="text-sm sm:text-base text-slate-600 leading-relaxed">
               It could evolve into a domain-specialized assistant integrated directly into Temelion’s
               platform — supporting workflows like Go/No-Go analysis, technical compliance checks,
               and document comparison for ACT phases.
