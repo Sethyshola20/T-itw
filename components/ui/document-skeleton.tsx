@@ -1,6 +1,8 @@
 'use client';
 
-import { ArtifactKind } from './artifact';
+import { ArtifactKind } from "../ai-elements/artifact";
+
+
 
 export const DocumentSkeleton = ({
   artifactKind,

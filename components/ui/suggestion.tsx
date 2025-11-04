@@ -9,7 +9,8 @@ import type { UISuggestion } from '@/lib/editor/suggestions';
 import { CrossIcon, MessageIcon } from './icons';
 import { Button } from './button';
 import { cn } from '@/lib/utils';
-import { ArtifactKind } from './artifact';
+import { ArtifactKind } from '../ai-elements/artifact';
+
 
 export const Suggestion = ({
   suggestion,

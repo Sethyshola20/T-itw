@@ -1,4 +1,5 @@
-import type { ArtifactKind } from '@/components/ui/artifact';
+import { ArtifactKind } from "@/components/ai-elements/artifact";
+
 
 export const airbnbPrompt = `
 You are a travel assistant that helps users find Airbnb listings that match their preferences.
