@@ -7,7 +7,8 @@ import Chat from '@/components/ui/chat';
 import { myProvider } from '@/lib/ai/providers';
 import { convertToUIMessages } from '@/lib/utils';
 import { ChatSDKError } from '@/lib/errors';
-import { Toaster } from 'sonner';
+import { toast, Toaster } from 'sonner';
+import { SignOut } from '@/lib/sign-in';
 
 export default async function Page(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -37,7 +38,10 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
   })
     
   if (!apiKey) {
-    throw new ChatSDKError('unauthorized:chat', 'No API key found');
+      setTimeout(() => {
+        toast.error("Could not find your api key")
+        SignOut()
+      }, (2000));
   }
 
 

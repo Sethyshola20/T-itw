@@ -11,12 +11,16 @@ import { myProvider } from '@/lib/ai/providers';
 import { EngineeringDeliverableObjectType } from '@/types';
 import { ChatSDKError } from '@/lib/errors';
 import { useKey } from '@/store';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { SignOut } from '@/lib/sign-in';
 
 export default function DocumentChatPage() {
   const [showUpload, setShowUpload] = useState(true);
   const [documentId, setDocumentId] = useState<string | null>(null);
   const [initialMessage, setInitialMessage] = useState<EngineeringDeliverableObjectType>()
 
+  const router = useRouter()
   const id = generateUUID();
   
   const { data: session } = authClient.useSession() 
@@ -24,7 +28,10 @@ export default function DocumentChatPage() {
   const apiKey = useKey(state=> state.apiKey)
   
   if (!apiKey) {
-      throw new ChatSDKError('unauthorized:chat', 'No API key found');
+      setTimeout(() => {
+        toast.error("Could not find your api key")
+        SignOut()
+      }, (2000));
   }
   return (
     <div className="flex flex-col items-center justify-center  mx-auto py-16 max-h-full h-full">
