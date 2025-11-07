@@ -6,9 +6,8 @@ import { auth } from '@/lib/auth';
 import Chat from '@/components/ui/chat';
 import { myProvider } from '@/lib/ai/providers';
 import { convertToUIMessages } from '@/lib/utils';
-import { ChatSDKError } from '@/lib/errors';
 import { toast, Toaster } from 'sonner';
-import { SignOut } from '@/lib/sign-in';
+
 
 export default async function Page(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -40,18 +39,14 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
   if (!apiKey) {
       setTimeout(() => {
         toast.error("Could not find your api key")
-        SignOut()
       }, (2000));
   }
 
-
   const uiMessages = convertToUIMessages(messagesFromDb);
   return (
-    <div className="flex flex-col max-h-full h-full ">
+    <div className="flex flex-col rounded bg-sidebar-accent border px-auto my-1.5 mr-1 w-full">
       <Chat documentId={chat.documentId} initialMessage={undefined} session={session} autoResume={true} id={id} key={id} initialChatModel={myProvider.languageModel.name} initialMessages={uiMessages} isReadonly={false} initialVisibilityType="private" apiKey={apiKey}/>
-            
       <DataStreamHandler />
-      <Toaster/>
     </div>
   );
 }

@@ -17,8 +17,6 @@ export async function GET(request: NextRequest) {
     ).toResponse();
   }
 
-
-
   const session = await auth.api.getSession({
     headers: request.headers,
   })

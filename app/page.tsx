@@ -16,19 +16,7 @@ import { MessageIcon } from "@/components/ui/icons";
 
 
 export default function Home() {
-  const { data: session, isPending, error } = authClient.useSession();
-
-  if (isPending) {
-    return (
-      <main className="flex min-h-screen flex-col items-center justify-center bg-white text-slate-900">
-        <h1 className="text-3xl md:text-4xl font-semibold mb-6">
-          Preparing your workspace...
-        </h1>
-        <Loader className="w-6 h-6 animate-spin text-slate-400" />
-        <Toaster />
-      </main>
-    );
-  }
+  const { data: session, error } = authClient.useSession();
 
   return (
     <main className="min-h-screen bg-white text-slate-900 flex flex-col items-center justify-center px-6 relative overflow-hidden">

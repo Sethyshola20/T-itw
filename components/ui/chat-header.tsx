@@ -30,7 +30,7 @@ function PureChatHeader({
   const { width: windowWidth } = useWindowSize();
 
   return (
-    <header className="flex sticky top-0 bg-background py-2 items-center px-2 md:px-2 gap-2 z-10">
+    <header className="flex sticky top-0 rounded py-2 items-center px-2 md:px-2 gap-2 z-10">
       {(!open || windowWidth < 768) && (
         <Tooltip>
           <TooltipTrigger asChild>

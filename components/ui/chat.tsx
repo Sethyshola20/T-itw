@@ -13,10 +13,6 @@ import {
   ConversationScrollButton,
 } from '@/components/ai-elements/conversation';
 import {
-  Branch,
-  BranchMessages,
-} from '@/components/ai-elements/branch';
-import {
   Message,
   MessageAvatar,
   MessageContent,
@@ -113,8 +109,6 @@ export default function Chat({
   const { mutate } = useSWRConfig();
 
   const [input, setInput] = useState('');
-  const [webSearch, setWebSearch] = useState(false);
-  const [microphone, setMicrophone] = useState(false);
 
   const {
     messages,
@@ -153,7 +147,6 @@ export default function Chat({
 
   useAutoResume({ autoResume, initialMessages, resumeStream, setMessages });
 
-
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -191,8 +184,8 @@ export default function Chat({
   );
 
   return (
-    <div className='max-w-[80%]'>
-      <div className="flex flex-col h-screen overflow-hidden bg-background">
+    <div className='max-h-[98vh]'>
+      <div className="flex flex-col h-full">
         <ChatHeader
           chatId={id}
           selectedModelId={initialChatModel}
@@ -214,8 +207,8 @@ export default function Chat({
                   description="Start chatting to see messages here"
                 />
               ) : (
-                messages.map((message) => (
-                  <>
+                messages.map((message,index) => (
+                  <div className='message-wrapper' key={index}>
                       <Message from={message.role}>
                         <MessageContent>
                           <Response>
@@ -246,7 +239,7 @@ export default function Chat({
                           onRegenerate={regenerate}
                         />
                       )}
-                    </>
+                    </div>
                 ))
               )}
               {status === 'submitted' && <Loader />}
@@ -256,7 +249,7 @@ export default function Chat({
         </div>
 
         {!isReadonly && (
-          <div className="border-t bg-background">
+          <div className="border-t">
             <Suggestions className="p-4">
               {defaultSuggestions.map((s) => (
                 <Suggestion

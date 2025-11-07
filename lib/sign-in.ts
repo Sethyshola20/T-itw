@@ -19,7 +19,7 @@ export function useSignIn() {
             },
             onSuccess: async (ctx) => {
                 loadingToastId && toast.dismiss(loadingToastId)
-                await createApiKey() // then redirects
+                const res = await createApiKey() // then redirects
             },
             onError: (ctx) => {
                 toast.dismiss(loadingToastId)
@@ -54,7 +54,7 @@ export async function createApiKey(){
         });
             
         if (response.ok) {
-            const data = await response.json() as { success: boolean, keyId: string, key: string }
+            const data = await response.json() as { keyId: string, key: string }
             const store = useKey.getState();
             store.setApiKey(data.key);
 

@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ success: true, keyId: apiKey.id, key: apiKey.key });
+    return NextResponse.json({ keyId: apiKey.id, key: apiKey.key });
   } catch (error) {
     console.log({error})
     return NextResponse.json({ error: "Failed to create API key" }, { status: 500 });

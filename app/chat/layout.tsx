@@ -4,6 +4,7 @@ import { ThemeProvider } from 'next-themes';
 import { AppSidebar } from '@/components/ui/app-sidebar';
 import { DataStreamProvider } from '@/components/ui/data-stream-provider';
 import { SidebarToggle } from '@/components/ui/sidebar-toggle';
+import { Toaster } from '@/components/ui/sonner';
 
 export const experimental_ppr = true;
 
@@ -27,8 +28,9 @@ export default async function Layout({
       <DataStreamProvider>
         <SidebarProvider defaultOpen={true}>
          <AppSidebar /> 
-          <SidebarInset >
+          <SidebarInset className='min-w-0 w-0 bg-sidebar'>
             {children}  
+            <Toaster/>
           </SidebarInset>
         </SidebarProvider>
       </DataStreamProvider>

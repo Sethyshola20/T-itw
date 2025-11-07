@@ -14,8 +14,8 @@ export const auth = betterAuth({
       apiKeyHeaders: ["chat-api-key"],
       rateLimit: {
         enabled: true,
-        timeWindow: 1000 * 60 * 60, // 1 hour
-        maxRequests: 1000,
+        timeWindow: 1000 * 60, // 1 hour
+        maxRequests: 100,
       },
     }),
   ],
