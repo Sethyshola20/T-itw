@@ -27,7 +27,7 @@ export async function POST(req: Request) {
     }
 
     const session = await auth.api.getSession({ headers: req.headers });
-    if (!session?.user)
+    if (!session)
       return new ChatSDKError("unauthorized:auth").toResponse();
     if (!apiKey)
       return new ChatSDKError(

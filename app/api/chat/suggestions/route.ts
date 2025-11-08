@@ -17,7 +17,7 @@ export async function GET(request: Request) {
     headers: request.headers,
   });
 
-  if (!session?.user) {
+  if (!session) {
     return new ChatSDKError("unauthorized:suggestions").toResponse();
   }
 

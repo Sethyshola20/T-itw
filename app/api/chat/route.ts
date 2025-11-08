@@ -36,7 +36,7 @@ export async function POST(req: Request) {
     const session = await auth.api.getSession({ headers: req.headers });
     const apiKey = req.headers.get("chat-api-key");
 
-    if (!session?.user)
+    if (!session)
       return new ChatSDKError("unauthorized:chat").toResponse();
     if (!apiKey)
       return new ChatSDKError(
@@ -158,7 +158,7 @@ export async function DELETE(request: Request) {
     headers: request.headers,
   });
 
-  if (!session?.user) {
+  if (!session) {
     return new ChatSDKError("unauthorized:chat").toResponse();
   }
 

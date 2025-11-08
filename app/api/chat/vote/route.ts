@@ -16,7 +16,7 @@ export async function GET(request: Request) {
     headers: request.headers,
   });
 
-  if (!session?.user) {
+  if (!session) {
     return new ChatSDKError("unauthorized:vote").toResponse();
   }
 
@@ -53,7 +53,7 @@ export async function PATCH(request: Request) {
     headers: request.headers,
   });
 
-  if (!session?.user) {
+  if (!session) {
     return new ChatSDKError("unauthorized:vote").toResponse();
   }
 

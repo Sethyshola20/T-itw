@@ -7,9 +7,7 @@ import { pipeline } from "stream/promises";
 import { createWriteStream } from "fs";
 import { Readable } from "stream";
 import { ALLOWED_EXTENSIONS, ALLOWED_TYPES } from "@/lib/constants";
-import { chunkContent } from "@/lib/chunking";
-import { generateEmbeddings } from "@/lib/embeddings";
-import { index, splitText, storeEmbeddings } from "@/lib/embeding";
+import { storeEmbeddings } from "@/lib/embeding";
 import { generateUUID } from "@/lib/utils";
 
 export async function preparePdfFile(

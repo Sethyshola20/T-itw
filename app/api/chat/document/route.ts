@@ -22,7 +22,7 @@ export async function GET(request: Request) {
     headers: request.headers,
   });
 
-  if (!session?.user) {
+  if (!session) {
     return new ChatSDKError("unauthorized:document").toResponse();
   }
 
@@ -56,7 +56,7 @@ export async function POST(request: Request) {
     headers: request.headers,
   });
 
-  if (!session?.user) {
+  if (!session) {
     return new ChatSDKError("not_found:document").toResponse();
   }
 
@@ -111,7 +111,7 @@ export async function DELETE(request: Request) {
     headers: request.headers,
   });
 
-  if (!session?.user) {
+  if (!session) {
     return new ChatSDKError("unauthorized:document").toResponse();
   }
 
