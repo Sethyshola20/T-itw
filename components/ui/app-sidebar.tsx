@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
@@ -9,19 +9,19 @@ import {
   SidebarHeader,
   SidebarMenu,
   useSidebar,
-} from '@/components/ui/sidebar';
-import Link from 'next/link';
-import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip"
-import { SidebarHistory } from './sidebar-history';
-import { authClient } from '@/lib/auth-client';
-import { SidebarUserNav } from './sidebar-user-nav';
-import { MessageIcon } from './icons';
-import { User } from '@/lib/db/auth-schema';
-import { SidebarToggle } from './sidebar-toggle';
+} from "@/components/ui/sidebar";
+import Link from "next/link";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
+import { SidebarHistory } from "./sidebar-history";
+import { authClient } from "@/lib/auth-client";
+import { SidebarUserNav } from "./sidebar-user-nav";
+import { MessageIcon } from "./icons";
+import { User } from "@/lib/db/auth-schema";
+import { SidebarToggle } from "./sidebar-toggle";
 
 export function AppSidebar() {
   const router = useRouter();
-  const { data: session } = authClient.useSession() 
+  const { data: session } = authClient.useSession();
 
   const user = session?.user as User | undefined;
 
@@ -51,11 +51,11 @@ export function AppSidebar() {
                   className="p-2 h-fit"
                   onClick={() => {
                     setOpenMobile(false);
-                    router.push('/chat');
+                    router.push("/chat");
                     router.refresh();
                   }}
                 >
-                 <MessageIcon />
+                  <MessageIcon />
                 </Button>
               </TooltipTrigger>
               <TooltipContent align="end">New Chat</TooltipContent>

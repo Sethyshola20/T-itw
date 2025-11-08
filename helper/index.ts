@@ -1,28 +1,29 @@
-import { PDFParse } from 'pdf-parse'; 
-import * as cheerio from 'cheerio';
-import { mkdir, access } from 'fs/promises';
-import path from 'path';
-import os from 'os';
-import { pipeline } from 'stream/promises';
-import { createWriteStream } from 'fs';
-import { Readable } from 'stream';
-import { ALLOWED_EXTENSIONS, ALLOWED_TYPES } from '@/lib/constants';
-import { chunkContent } from '@/lib/chunking';
-import { generateEmbeddings } from '@/lib/embeddings';
-import { index, splitText, storeEmbeddings } from '@/lib/embeding';
-import { generateUUID } from '@/lib/utils';
+import { PDFParse } from "pdf-parse";
+import * as cheerio from "cheerio";
+import { mkdir, access } from "fs/promises";
+import path from "path";
+import os from "os";
+import { pipeline } from "stream/promises";
+import { createWriteStream } from "fs";
+import { Readable } from "stream";
+import { ALLOWED_EXTENSIONS, ALLOWED_TYPES } from "@/lib/constants";
+import { chunkContent } from "@/lib/chunking";
+import { generateEmbeddings } from "@/lib/embeddings";
+import { index, splitText, storeEmbeddings } from "@/lib/embeding";
+import { generateUUID } from "@/lib/utils";
 
+export async function preparePdfFile(
+  fileOrUrl: File | string,
+  documentId: string,
+) {
+  let filePath = "";
+  let fileName = "";
+  let fileDataUrl = "";
+  let documentText = "";
 
-export async function preparePdfFile(fileOrUrl: File | string, documentId: string) {
-  let filePath = '';
-  let fileName = '';
-  let fileDataUrl = '';
-  let documentText = '';
-
- 
-  if (typeof fileOrUrl === 'string') {
+  if (typeof fileOrUrl === "string") {
     await validatePdfUrl(fileOrUrl);
-    fileName = fileOrUrl.split('/').pop() || 'document.pdf';
+    fileName = fileOrUrl.split("/").pop() || "document.pdf";
     filePath = await saveFileFromUrl(fileOrUrl, `${documentId}.pdf`);
     fileDataUrl = await fetchUrlAsDataURL(fileOrUrl);
     documentText = await extractTextFromPdfBuffer(filePath);
@@ -38,15 +39,15 @@ export async function preparePdfFile(fileOrUrl: File | string, documentId: strin
 }
 
 async function extractTextFromPdfBuffer(filePath: string): Promise<string> {
-  const fs = await import('fs/promises');
+  const fs = await import("fs/promises");
   const buffer = await fs.readFile(filePath);
-  const uint8Array = new Uint8Array(buffer);       
-  const parser = new PDFParse(uint8Array)
+  const uint8Array = new Uint8Array(buffer);
+  const parser = new PDFParse(uint8Array);
   const parsed = await parser.getText();
-  if (!parsed.text?.trim()) throw new Error('No text could be extracted from PDF.');
+  if (!parsed.text?.trim())
+    throw new Error("No text could be extracted from PDF.");
   return parsed.text;
 }
-
 
 export async function validateFileType(file: File): Promise<string> {
   try {
@@ -59,7 +60,9 @@ export async function validateFileType(file: File): Promise<string> {
     const isMimeAllowed = ALLOWED_TYPES.has(mimeType);
 
     if (!isMimeAllowed && !hasAllowedExtension) {
-      console.log(`Invalid file format. Expected PDF, got: ${mimeType || filename}`,)
+      console.log(
+        `Invalid file format. Expected PDF, got: ${mimeType || filename}`,
+      );
       throw new Error(
         `Invalid file format. Expected PDF, got: ${mimeType || filename}`,
       );
@@ -67,13 +70,13 @@ export async function validateFileType(file: File): Promise<string> {
 
     await validateFileHeader(file);
 
-    const extension = filename.split('.').pop() || '';
+    const extension = filename.split(".").pop() || "";
     return extension;
   } catch (error: unknown) {
     const message =
       error instanceof Error
         ? error.message
-        : 'An unknown error occurred during file validation.';
+        : "An unknown error occurred during file validation.";
     throw new Error(`File validation failed: ${message}`);
   }
 }
@@ -115,10 +118,8 @@ export async function validatePdfUrl(url: string): Promise<string> {
   }
 }
 
-
 export async function validateFileHeader(file: File): Promise<boolean> {
   const header = new Uint8Array(await file.slice(0, 4).arrayBuffer());
-
 
   if (
     header[0] === 0x25 && // %
@@ -129,15 +130,13 @@ export async function validateFileHeader(file: File): Promise<boolean> {
     return true;
   }
 
-  throw new Error('The uploaded file does not appear to be a valid PDF.');
+  throw new Error("The uploaded file does not appear to be a valid PDF.");
 }
-
 
 export async function saveFile(file: File, saveAs: string): Promise<string> {
   try {
-    const baseDir =
-      os.platform() === 'win32' ? 'D:\\' : process.cwd();
-    const uploadsDir = path.join(baseDir, 'uploads');
+    const baseDir = os.platform() === "win32" ? "D:\\" : process.cwd();
+    const uploadsDir = path.join(baseDir, "uploads");
     await ensureDirExists(uploadsDir);
 
     const filePath = path.resolve(uploadsDir, saveAs);
@@ -151,7 +150,7 @@ export async function saveFile(file: File, saveAs: string): Promise<string> {
     const message =
       error instanceof Error
         ? error.message
-        : 'Unexpected error during file save.';
+        : "Unexpected error during file save.";
     throw new Error(`Failed to save file: ${message}`);
   }
 }
@@ -169,8 +168,10 @@ export async function fetchUrlAsDataURL(url: string): Promise<string> {
   return `data:application/pdf;base64,${base64}`;
 }
 
-
-export async function processPdfFile(fileOrUrl: File | string, metadata: Record<string, any> = {}) {
+export async function processPdfFile(
+  fileOrUrl: File | string,
+  metadata: Record<string, any> = {},
+) {
   try {
     const documentId = generateUUID();
     let text = "";
@@ -188,7 +189,9 @@ export async function processPdfFile(fileOrUrl: File | string, metadata: Record<
     }
 
     if (!text || text.trim().length === 0) {
-      throw new Error("No text could be extracted from PDF. It may be scanned or image-only.");
+      throw new Error(
+        "No text could be extracted from PDF. It may be scanned or image-only.",
+      );
     }
 
     await storeEmbeddings(documentId, text, metadata);
@@ -207,39 +210,43 @@ export async function processPdfFile(fileOrUrl: File | string, metadata: Record<
   }
 }
 
-export async function saveFileFromUrl(url: string, saveAs: string): Promise<string> {
+export async function saveFileFromUrl(
+  url: string,
+  saveAs: string,
+): Promise<string> {
   try {
     const response = await fetch(url);
-    if (!response.ok) throw new Error(`Failed to fetch file: ${response.statusText}`);
+    if (!response.ok)
+      throw new Error(`Failed to fetch file: ${response.statusText}`);
 
-    const contentType = response.headers.get('content-type');
-    if (!contentType || !contentType.includes('pdf')) {
-      throw new Error(`URL does not point to a valid PDF file. Received: ${contentType}`);
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("pdf")) {
+      throw new Error(
+        `URL does not point to a valid PDF file. Received: ${contentType}`,
+      );
     }
 
-    if (!response.body) throw new Error('Response has no body.');
+    if (!response.body) throw new Error("Response has no body.");
 
-    const baseDir = os.platform() === 'win32' ? 'D:\\' : '';
-    const uploadsDir = path.join(baseDir, 'uploads');
+    const baseDir = os.platform() === "win32" ? "D:\\" : "";
+    const uploadsDir = path.join(baseDir, "uploads");
 
     await mkdir(uploadsDir, { recursive: true });
-    
-    const nodeStream = Readable.fromWeb(response.body as any); 
+
+    const nodeStream = Readable.fromWeb(response.body as any);
     const filePath = path.resolve(uploadsDir, saveAs);
     const fileStream = createWriteStream(filePath);
-    
+
     await pipeline(nodeStream, fileStream);
 
-    return filePath; 
+    return filePath;
   } catch (error: unknown) {
     if (error instanceof Error) {
       throw new Error(`Failed to save file from URL: ${error.message}`);
     }
-    throw new Error('Unknown error occurred while saving file from URL.');
+    throw new Error("Unknown error occurred while saving file from URL.");
   }
 }
-
-
 
 export async function ensureDirExists(dir: string): Promise<void> {
   await mkdir(dir, { recursive: true });
@@ -262,13 +269,11 @@ export async function extractTextFromPdf(buffer: Buffer): Promise<string> {
   const result = await parser.getText();
 
   return result.text;
-
 }
 
 export async function extractTextFromUrl(url: string): Promise<string> {
   const response = await fetch(url);
   const html = await response.text();
   const $ = cheerio.load(html);
-  return $('body').text();
+  return $("body").text();
 }
-

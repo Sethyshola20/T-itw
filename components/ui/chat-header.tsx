@@ -1,15 +1,14 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useWindowSize } from 'usehooks-ts';
-import { Button } from '@/components/ui/button';
-import { PlusIcon, VercelIcon } from './icons';
-import { useSidebar } from './sidebar';
-import { memo } from 'react';
-import { Tooltip, TooltipContent, TooltipTrigger } from './tooltip';
-import { type VisibilityType, VisibilitySelector } from './visibility-selector';
-
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useWindowSize } from "usehooks-ts";
+import { Button } from "@/components/ui/button";
+import { PlusIcon, VercelIcon } from "./icons";
+import { useSidebar } from "./sidebar";
+import { memo } from "react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
+import { type VisibilityType, VisibilitySelector } from "./visibility-selector";
 
 function PureChatHeader({
   chatId,
@@ -35,10 +34,10 @@ function PureChatHeader({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              variant="outline"
+              variant="ghost"
               className="order-2 md:order-1 md:px-2 px-2 md:h-fit ml-auto md:ml-0"
               onClick={() => {
-                router.push('/chat');
+                router.push("/chat");
                 router.refresh();
               }}
             >

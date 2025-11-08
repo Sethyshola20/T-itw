@@ -11,13 +11,11 @@ const index = pc.index("engineering-docs");
 export async function searchDocuments(
   query: string,
   limit: number = 5,
-  documentId:string,
+  documentId: string,
   threshold: number = 0.5,
-  topK = 5, 
+  topK = 5,
 ) {
-
-  const embedding = await generateEmbedding(query)
-
+  const embedding = await generateEmbedding(query);
 
   const results = await index.query({
     vector: embedding,
@@ -26,7 +24,6 @@ export async function searchDocuments(
     includeMetadata: true,
     includeValues: true,
   });
-
 
   const scoredChunks = (results.matches ?? [])
     .map((match) => ({

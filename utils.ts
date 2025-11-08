@@ -1,8 +1,8 @@
 import {
   createResumableStreamContext,
   type ResumableStreamContext,
-} from 'resumable-stream';
-import { after } from 'next/server';
+} from "resumable-stream";
+import { after } from "next/server";
 
 let globalStreamContext: ResumableStreamContext | null = null;
 
@@ -13,9 +13,9 @@ export function getStreamContext() {
         waitUntil: after,
       });
     } catch (error: any) {
-      if (error.message.includes('REDIS_URL')) {
+      if (error.message.includes("REDIS_URL")) {
         console.log(
-          ' > Resumable streams are disabled due to missing REDIS_URL',
+          " > Resumable streams are disabled due to missing REDIS_URL",
         );
       } else {
         console.error(error);

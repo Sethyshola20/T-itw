@@ -21,7 +21,12 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { SignInFormType, signinSchema, SignupFormType, signupSchema } from "@/types";
+import {
+  SignInFormType,
+  signinSchema,
+  SignupFormType,
+  signupSchema,
+} from "@/types";
 import { useSignIn } from "@/lib/sign-in";
 import { useSignUp } from "@/lib/sign-up";
 
@@ -46,11 +51,12 @@ export function ConnectionDialog() {
     },
   });
 
-
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="cta" size="xl">Connect</Button>
+        <Button variant="cta" size="xl">
+          Connect
+        </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
@@ -66,7 +72,10 @@ export function ConnectionDialog() {
           </TabsList>
           <TabsContent value="login">
             <Form {...loginForm}>
-              <form onSubmit={loginForm.handleSubmit(signIn)} className="space-y-4">
+              <form
+                onSubmit={loginForm.handleSubmit(signIn)}
+                className="space-y-4"
+              >
                 <FormField
                   control={loginForm.control}
                   name="email"
@@ -87,7 +96,11 @@ export function ConnectionDialog() {
                     <FormItem>
                       <FormLabel>Password</FormLabel>
                       <FormControl>
-                        <Input type="password" placeholder="••••••••" {...field} />
+                        <Input
+                          type="password"
+                          placeholder="••••••••"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -102,7 +115,10 @@ export function ConnectionDialog() {
 
           <TabsContent value="signup">
             <Form {...signupForm}>
-              <form onSubmit={signupForm.handleSubmit(signUp)} className="space-y-4">
+              <form
+                onSubmit={signupForm.handleSubmit(signUp)}
+                className="space-y-4"
+              >
                 <FormField
                   control={signupForm.control}
                   name="name"
@@ -136,7 +152,11 @@ export function ConnectionDialog() {
                     <FormItem>
                       <FormLabel>Password</FormLabel>
                       <FormControl>
-                        <Input type="password" placeholder="••••••••" {...field} />
+                        <Input
+                          type="password"
+                          placeholder="••••••••"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -149,7 +169,11 @@ export function ConnectionDialog() {
                     <FormItem>
                       <FormLabel>Confirm Password</FormLabel>
                       <FormControl>
-                        <Input type="password" placeholder="••••••••" {...field} />
+                        <Input
+                          type="password"
+                          placeholder="••••••••"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

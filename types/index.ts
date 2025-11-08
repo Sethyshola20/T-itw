@@ -1,9 +1,9 @@
-import { z } from 'zod';
+import { z } from "zod";
 
-import type { InferUITool, UIMessage } from 'ai';
+import type { InferUITool, UIMessage } from "ai";
 
 export const engineeringDeliverableSchema = z.object({
-  documentId:z.string(),
+  documentId: z.string(),
   projectName: z.string(),
   projectId: z.string().optional(),
   clientName: z.string(),
@@ -14,61 +14,79 @@ export const engineeringDeliverableSchema = z.object({
     "Analyse Offre",
     "Comparaison ACT",
     "Go/No Go Rapport",
-    "Autre"
+    "Autre",
   ]),
-  submissionDate: z.string(),        
+  submissionDate: z.string(),
   designPhase: z.enum([
     "Étude préliminaire",
     "Avant-projet",
     "Projet",
     "Exécution",
-    "As-built"
+    "As-built",
   ]),
   scopeDescription: z.string(),
-  keyMetrics: z.object({
-    totalCostEstimate: z.number().optional(),
-    timelineWeeks: z.number().optional(),
-    complianceStatus: z.enum(["Conforme", "Non conforme", "À vérifier"]).optional()
-  }).optional(),
-  deliverables: z.array(z.object({
-    deliverableName: z.string(),
-    deliverableType: z.string(),
-    dueDate: z.string().optional(),
-    status: z.enum(["En attente", "Livré", "Validé", "Refusé"])
-  })).optional(),
-  signatures: z.array(z.object({
-    role: z.string(),         
-    name: z.string(),
-    dateSigned: z.string().optional()
-  })).optional(),
-  remarks: z.string().optional()
+  keyMetrics: z
+    .object({
+      totalCostEstimate: z.number().optional(),
+      timelineWeeks: z.number().optional(),
+      complianceStatus: z
+        .enum(["Conforme", "Non conforme", "À vérifier"])
+        .optional(),
+    })
+    .optional(),
+  deliverables: z
+    .array(
+      z.object({
+        deliverableName: z.string(),
+        deliverableType: z.string(),
+        dueDate: z.string().optional(),
+        status: z.enum(["En attente", "Livré", "Validé", "Refusé"]),
+      }),
+    )
+    .optional(),
+  signatures: z
+    .array(
+      z.object({
+        role: z.string(),
+        name: z.string(),
+        dateSigned: z.string().optional(),
+      }),
+    )
+    .optional(),
+  remarks: z.string().optional(),
 });
 
-export type EngineeringDeliverableObjectType = z.infer<typeof engineeringDeliverableSchema>
-
-
-
+export type EngineeringDeliverableObjectType = z.infer<
+  typeof engineeringDeliverableSchema
+>;
 
 // AUTH
 
 export const signinSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
-  password: z.string().min(8, { message: "Password must be at least 8 characters" }),
+  password: z
+    .string()
+    .min(8, { message: "Password must be at least 8 characters" }),
 });
-export const signupSchema = z.object({
-  name: z.string().max(20),
-  email: z.string().email({ message: "Invalid email address" }),
-  password: z.string().min(8, { message: "Password must be at least 8 characters" }),
-  confirmPassword: z.string().min(8, { message: "Password must be at least 8 characters" }),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords do not match",
-  path: ["confirmPassword"],
-});
+export const signupSchema = z
+  .object({
+    name: z.string().max(20),
+    email: z.string().email({ message: "Invalid email address" }),
+    password: z
+      .string()
+      .min(8, { message: "Password must be at least 8 characters" }),
+    confirmPassword: z
+      .string()
+      .min(8, { message: "Password must be at least 8 characters" }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
 
-
-export type SignInFormType = z.infer<typeof signinSchema>
-export type SignupFormType = z.infer<typeof signupSchema>
-export type DataPart = { type: 'append-message'; message: string };
+export type SignInFormType = z.infer<typeof signinSchema>;
+export type SignupFormType = z.infer<typeof signupSchema>;
+export type DataPart = { type: "append-message"; message: string };
 
 export const messageMetadataSchema = z.object({
   createdAt: z.string(),
@@ -78,8 +96,7 @@ export type MessageMetadata = z.infer<typeof messageMetadataSchema>;
 
 // TO CHANGE
 type createDocumentTool = InferUITool<ReturnType<any>>;
-type updateDocumentTool = InferUITool<ReturnType<any>>
-
+type updateDocumentTool = InferUITool<ReturnType<any>>;
 
 export type ChatTools = {
   createDocument: createDocumentTool;

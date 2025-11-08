@@ -1,6 +1,5 @@
 import { ArtifactKind } from "@/components/ai-elements/artifact";
 
-
 export const airbnbPrompt = `
 You are a travel assistant that helps users find Airbnb listings that match their preferences.
 
@@ -17,16 +16,11 @@ export const regularPrompt = `
 Keep responses helpful, concise, and travel-focused. Ask for clarification if needed.
 `;
 
-
 export const systemPrompt = ({
   selectedChatModel,
-
 }: {
   selectedChatModel: string;
-
 }) => {
-
-
   return `${regularPrompt}\n\n${airbnbPrompt}`;
 };
 
@@ -34,10 +28,10 @@ export const updateDocumentPrompt = (
   currentContent: string | null,
   type: ArtifactKind,
 ) =>
-  type === 'text'
+  type === "text"
     ? `Improve the following content based on the latest Airbnb listing information.\n\n${currentContent}`
-    : type === 'code'
-    ? `Improve the following code snippet based on Airbnb search logic.\n\n${currentContent}`
-    : type === 'sheet'
-    ? `Update the spreadsheet with the new or refined Airbnb listings.\n\n${currentContent}`
-    : '';
+    : type === "code"
+      ? `Improve the following code snippet based on Airbnb search logic.\n\n${currentContent}`
+      : type === "sheet"
+        ? `Update the spreadsheet with the new or refined Airbnb listings.\n\n${currentContent}`
+        : "";

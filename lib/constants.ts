@@ -34,20 +34,12 @@ Output:
 Return TEXT,
 `;
 
+export const ALLOWED_EXTENSIONS = new Set(["pdf"]);
 
-export const ALLOWED_EXTENSIONS = new Set([
-    "pdf",
-]);
+export const ALLOWED_TYPES = new Set(["application/pdf"]);
 
-
-export const ALLOWED_TYPES = new Set(
-    [
-        "application/pdf",
-    ]
-)
-
-export const isProductionEnvironment = process.env.NODE_ENV === 'production';
-export const isDevelopmentEnvironment = process.env.NODE_ENV === 'development';
+export const isProductionEnvironment = process.env.NODE_ENV === "production";
+export const isDevelopmentEnvironment = process.env.NODE_ENV === "development";
 export const isTestEnvironment = Boolean(
   process.env.PLAYWRIGHT_TEST_BASE_URL ||
     process.env.PLAYWRIGHT ||
@@ -55,4 +47,3 @@ export const isTestEnvironment = Boolean(
 );
 
 export const guestRegex = /^guest-\d+$/;
-

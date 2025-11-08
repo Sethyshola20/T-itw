@@ -20,7 +20,7 @@ A Next.js app that allows users to upload PDF documents and chat with an AI assi
 
 - Frontend: Next.js (React) with Tailwind CSS
 - Backend: Next.js APIGemini, Mistral via AI SDK
-- Agent & RAG: LangChain 
+- Agent & RAG: LangChain
 - Vector DB: Pinecone for fast embedding retrieval
 - Form handling: react-hook-form with Zod validation
 
@@ -45,7 +45,6 @@ A Next.js app that allows users to upload PDF documents and chat with an AI assi
 
 ### Installation
 
-
 ### Configuration
 
 Create a `.env.local` file in the root directory with the following content:
@@ -57,11 +56,9 @@ PINECONE_API_KEY=
 PINECONE_HOST=
 REDIS_URL=
 
-
 ### Running the App
 
 bun dev
-
 
 Open your browser at [http://localhost:3000](http://localhost:3000) to use the app.
 

@@ -1,5 +1,12 @@
 import { InferSelectModel } from "drizzle-orm";
-import { pgTable, text, timestamp, boolean, pgSchema, integer } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  timestamp,
+  boolean,
+  pgSchema,
+  integer,
+} from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -89,11 +96,10 @@ export const apikey = pgTable("apikey", {
   metadata: text("metadata"),
 });
 
-
 export const authSchema = {
   user,
   session,
   account,
   verification,
-  apikey
+  apikey,
 };

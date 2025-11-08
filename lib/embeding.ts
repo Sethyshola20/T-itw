@@ -1,10 +1,9 @@
 import { Pinecone } from "@pinecone-database/pinecone";
-import { google } from "@ai-sdk/google"
+import { google } from "@ai-sdk/google";
 import { embedMany, cosineSimilarity, embed } from "ai";
 import { chunkContent } from "./chunking";
 
 export const pinecone = new Pinecone({ apiKey: process.env.PINECONE_API_KEY! });
-
 
 export const index = pinecone.Index("engineering-docs");
 
@@ -12,7 +11,11 @@ export const index = pinecone.Index("engineering-docs");
  * Splits long text into smaller semantically coherent chunks.
  * Ideal chunk size: ~500–1000 tokens (≈ 2000–4000 characters)
  */
-export function splitText(text: string, chunkSize = 3000, overlap = 200): string[] {
+export function splitText(
+  text: string,
+  chunkSize = 3000,
+  overlap = 200,
+): string[] {
   const cleanText = text.replace(/\s+/g, " ").trim();
   const chunks: string[] = [];
 
@@ -38,7 +41,7 @@ export function splitText(text: string, chunkSize = 3000, overlap = 200): string
 export async function storeEmbeddings(
   documentId: string,
   text: string,
-  metadata: Record<string, any> = {}
+  metadata: Record<string, any> = {},
 ) {
   try {
     const chunks = await chunkContent(text);
@@ -63,7 +66,9 @@ export async function storeEmbeddings(
 
     await index.upsert(vectors);
 
-    console.log(`[storeEmbeddings] Stored ${vectors.length} chunks for ${documentId}`);
+    console.log(
+      `[storeEmbeddings] Stored ${vectors.length} chunks for ${documentId}`,
+    );
     return { success: true, count: vectors.length };
   } catch (error) {
     console.error("[storeEmbeddings] Pinecone embedding error:", error);

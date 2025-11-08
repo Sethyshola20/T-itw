@@ -1,23 +1,23 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useRef, Fragment } from 'react';
-import useSWR, { useSWRConfig } from 'swr';
-import { useChat } from '@ai-sdk/react';
-import { DefaultChatTransport } from 'ai';
-import { unstable_serialize } from 'swr/infinite';
-import { toast } from 'sonner';
+import { useEffect, useState, useRef, Fragment } from "react";
+import useSWR, { useSWRConfig } from "swr";
+import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport } from "ai";
+import { unstable_serialize } from "swr/infinite";
+import { toast } from "sonner";
 import {
   Conversation,
   ConversationContent,
   ConversationEmptyState,
   ConversationScrollButton,
-} from '@/components/ai-elements/conversation';
+} from "@/components/ai-elements/conversation";
 import {
   Message,
   MessageAvatar,
   MessageContent,
-} from '@/components/ai-elements/message';
-import { Response } from '@/components/ai-elements/response';
+} from "@/components/ai-elements/message";
+import { Response } from "@/components/ai-elements/response";
 import {
   PromptInput,
   PromptInputProvider,
@@ -35,9 +35,9 @@ import {
   PromptInputActionMenuContent,
   PromptInputActionAddAttachments,
   type PromptInputMessage,
-} from '@/components/ai-elements/prompt-input';
-import { Suggestion, Suggestions } from '@/components/ai-elements/suggestion';
-import { ChatHeader } from '@/components/ui/chat-header';
+} from "@/components/ai-elements/prompt-input";
+import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
+import { ChatHeader } from "@/components/ui/chat-header";
 import {
   CopyIcon,
   RefreshCcwIcon,
@@ -46,37 +46,36 @@ import {
   CheckIcon,
   MessageSquare,
   MicIcon,
-} from 'lucide-react';
-import { Loader } from '@/components/ai-elements/loader';
-import { Actions, Action } from '@/components/ai-elements/actions';
+} from "lucide-react";
+import { Loader } from "@/components/ai-elements/loader";
+import { Actions, Action } from "@/components/ai-elements/actions";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { fetcher, fetchWithErrorHandlers, generateUUID } from '@/lib/utils';
-import { useChatVisibility } from '@/hooks/use-chat-visibility';
-import { useAutoResume } from '@/hooks/use-auto-resume';
-import { getChatHistoryPaginationKey } from './sidebar-history';
-import { ChatSDKError } from '@/lib/errors';
-import type { ChatMessage } from '@/types';
-import type { Vote } from '@/lib/db/schema';
-import { VisibilityType } from './visibility-selector';
+} from "@/components/ui/tooltip";
+import { fetcher, fetchWithErrorHandlers, generateUUID } from "@/lib/utils";
+import { useChatVisibility } from "@/hooks/use-chat-visibility";
+import { useAutoResume } from "@/hooks/use-auto-resume";
+import { getChatHistoryPaginationKey } from "./sidebar-history";
+import { ChatSDKError } from "@/lib/errors";
+import type { ChatMessage } from "@/types";
+import type { Vote } from "@/lib/db/schema";
+import { VisibilityType } from "./visibility-selector";
 
 const defaultSuggestions = [
-  'Summarize this engineering document',
-  'Highlight the key specifications and requirements',
-  'Generate a checklist for project implementation',
-  'Identify potential risks and mitigation strategies',
-  'Convert this technical report into a concise executive summary',
-  'Suggest improvements or optimizations in the design',
-  'Create a diagram or workflow based on this document',
-  'Compare this deliverable with industry best practices',
-  'Extract action items from this report',
-  'Provide a step-by-step implementation plan',
+  "Summarize this engineering document",
+  "Highlight the key specifications and requirements",
+  "Generate a checklist for project implementation",
+  "Identify potential risks and mitigation strategies",
+  "Convert this technical report into a concise executive summary",
+  "Suggest improvements or optimizations in the design",
+  "Create a diagram or workflow based on this document",
+  "Compare this deliverable with industry best practices",
+  "Extract action items from this report",
+  "Provide a step-by-step implementation plan",
 ];
-
 
 export default function Chat({
   id,
@@ -108,7 +107,7 @@ export default function Chat({
   const scrollRef = useRef<HTMLDivElement>(null);
   const { mutate } = useSWRConfig();
 
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
 
   const {
     messages,
@@ -123,7 +122,7 @@ export default function Chat({
     experimental_throttle: 100,
     generateId: generateUUID,
     transport: new DefaultChatTransport({
-      api: '/api/chat',
+      api: "/api/chat",
       fetch: fetchWithErrorHandlers,
       prepareSendMessagesRequest({ messages, id, body }) {
         return {
@@ -140,8 +139,19 @@ export default function Chat({
     }),
     onFinish: () => mutate(unstable_serialize(getChatHistoryPaginationKey)),
     onError: (error) => {
-      setMessages([{ id: generateUUID(), role: 'assistant', parts: [{ type: 'text', text:'I could not find relevant information for that question in this document.' }] }]);
-      toast.error(error instanceof Error ? error.message : 'Unexpected error');      
+      setMessages([
+        {
+          id: generateUUID(),
+          role: "assistant",
+          parts: [
+            {
+              type: "text",
+              text: "I could not find relevant information for that question in this document.",
+            },
+          ],
+        },
+      ]);
+      toast.error(error instanceof Error ? error.message : "Unexpected error");
     },
   });
 
@@ -153,7 +163,6 @@ export default function Chat({
     }
   }, [messages, status]);
 
-
   useEffect(() => {
     if (
       documentId &&
@@ -163,19 +172,34 @@ export default function Chat({
     ) {
       const jsonText = JSON.stringify(initialMessage, null, 2);
       const text = `I've loaded your document successfully! Here’s the data:\n\n\`\`\`json\n${jsonText}\n\`\`\``;
-      setMessages([{ id: generateUUID(), role: 'assistant', parts: [{ type: 'text', text }] }]);
+      setMessages([
+        {
+          id: generateUUID(),
+          role: "assistant",
+          parts: [{ type: "text", text }],
+        },
+      ]);
     }
-  }, [documentId, initialMessages.length, initialMessage, messages.length, setMessages]);
+  }, [
+    documentId,
+    initialMessages.length,
+    initialMessage,
+    messages.length,
+    setMessages,
+  ]);
 
   const handleSubmit = (message: PromptInputMessage) => {
     if (!message.text?.trim()) return;
-    sendMessage({ role: 'user', parts: [{ type: 'text', text: message.text }] });
-    setInput('');
+    sendMessage({
+      role: "user",
+      parts: [{ type: "text", text: message.text }],
+    });
+    setInput("");
   };
 
   const handleSuggestionClick = (suggestion: string) => {
-    setInput('');
-    sendMessage({ role: 'user', parts: [{ type: 'text', text: suggestion }] });
+    setInput("");
+    sendMessage({ role: "user", parts: [{ type: "text", text: suggestion }] });
   };
 
   const { data: votes } = useSWR<Array<Vote>>(
@@ -184,7 +208,7 @@ export default function Chat({
   );
 
   return (
-    <div className='max-h-[98vh]'>
+    <div className="max-h-[98vh]">
       <div className="flex flex-col h-full">
         <ChatHeader
           chatId={id}
@@ -207,42 +231,40 @@ export default function Chat({
                   description="Start chatting to see messages here"
                 />
               ) : (
-                messages.map((message,index) => (
-                  <div className='message-wrapper' key={index}>
-                      <Message from={message.role}>
-                        <MessageContent>
-                          <Response>
-                            {message.parts
-                              .map(
-                                (p) => (p as any).text || (p as any).delta || '',
-                              )
-                              .join(' ')}
-                          </Response>
-                        </MessageContent>
-
-                        {/* Only show avatar for user messages */}
-                        {message.role === 'user' && (
-                          <MessageAvatar
-                            name="You"
-                            src="https://github.com/haydenbleasel.png"
-                          />
-                        )}
-                      </Message>
-
-                      {message.role === 'assistant' && (
-                        <MessageActions
-                          text={message.parts
+                messages.map((message, index) => (
+                  <div className="message-wrapper" key={index}>
+                    <Message from={message.role}>
+                      <MessageContent>
+                        <Response>
+                          {message.parts
                             .map(
-                              (p) => (p as any).text || (p as any).delta || '',
+                              (p) => (p as any).text || (p as any).delta || "",
                             )
-                            .join(' ')}
-                          onRegenerate={regenerate}
+                            .join(" ")}
+                        </Response>
+                      </MessageContent>
+
+                      {/* Only show avatar for user messages */}
+                      {message.role === "user" && (
+                        <MessageAvatar
+                          name="You"
+                          src="https://github.com/haydenbleasel.png"
                         />
                       )}
-                    </div>
+                    </Message>
+
+                    {message.role === "assistant" && (
+                      <MessageActions
+                        text={message.parts
+                          .map((p) => (p as any).text || (p as any).delta || "")
+                          .join(" ")}
+                        onRegenerate={regenerate}
+                      />
+                    )}
+                  </div>
                 ))
               )}
-              {status === 'submitted' && <Loader />}
+              {status === "submitted" && <Loader />}
             </ConversationContent>
             <ConversationScrollButton />
           </Conversation>
@@ -274,13 +296,12 @@ export default function Chat({
                   <PromptInputFooter>
                     <PromptInputTools>
                       <PromptInputActionMenu>
-                        <PromptInputActionMenuContent>
-                        </PromptInputActionMenuContent>
+                        <PromptInputActionMenuContent></PromptInputActionMenuContent>
                       </PromptInputActionMenu>
                     </PromptInputTools>
 
                     <PromptInputSubmit
-                      disabled={!input.trim() || status === 'streaming'}
+                      disabled={!input.trim() || status === "streaming"}
                       status={status}
                     />
                   </PromptInputFooter>
@@ -312,9 +333,9 @@ function MessageActions({
   const handleShare = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
-      toast.success('Chat link copied!');
+      toast.success("Chat link copied!");
     } catch {
-      toast.info('Share feature coming soon.');
+      toast.info("Share feature coming soon.");
     }
   };
 
@@ -331,7 +352,7 @@ function MessageActions({
 
       <Tooltip>
         <TooltipTrigger asChild>
-          <Action label={copied ? 'Copied!' : 'Copy'} onClick={handleCopy}>
+          <Action label={copied ? "Copied!" : "Copy"} onClick={handleCopy}>
             {copied ? (
               <CheckIcon className="size-3" />
             ) : (
@@ -339,7 +360,7 @@ function MessageActions({
             )}
           </Action>
         </TooltipTrigger>
-        <TooltipContent>{copied ? 'Copied!' : 'Copy'}</TooltipContent>
+        <TooltipContent>{copied ? "Copied!" : "Copy"}</TooltipContent>
       </Tooltip>
 
       <Tooltip>

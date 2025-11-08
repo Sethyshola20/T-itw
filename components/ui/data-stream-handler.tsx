@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useEffect, useRef } from 'react';
-import { initialArtifactData, useArtifact } from '@/hooks/use-artifact';
-import { useDataStream } from './data-stream-provider';
-import { artifactDefinitions } from '../ai-elements/artifact';
+import { useEffect, useRef } from "react";
+import { initialArtifactData, useArtifact } from "@/hooks/use-artifact";
+import { useDataStream } from "./data-stream-provider";
+import { artifactDefinitions } from "../ai-elements/artifact";
 
 export function DataStreamHandler() {
   const { dataStream } = useDataStream();
@@ -30,39 +30,38 @@ export function DataStreamHandler() {
         });
       }
 
-      setArtifact((draftArtifact:any) => {
+      setArtifact((draftArtifact: any) => {
         if (!draftArtifact) {
-          return { ...initialArtifactData, status: 'streaming' };
+          return { ...initialArtifactData, status: "streaming" };
         }
 
         switch (delta.type) {
-          case 'data-id':
+          case "data-id":
             return {
               ...draftArtifact,
               documentId: delta.data,
-              status: 'streaming',
+              status: "streaming",
             };
 
-          case 'data-title':
+          case "data-title":
             return {
               ...draftArtifact,
               title: delta.data,
-              status: 'streaming',
-            };
-            
-          case 'data-clear':
-            return {
-              ...draftArtifact,
-              content: '',
-              status: 'streaming',
+              status: "streaming",
             };
 
-          case 'data-finish':
+          case "data-clear":
             return {
               ...draftArtifact,
-              status: 'idle',
+              content: "",
+              status: "streaming",
             };
-            
+
+          case "data-finish":
+            return {
+              ...draftArtifact,
+              status: "idle",
+            };
 
           default:
             return draftArtifact;

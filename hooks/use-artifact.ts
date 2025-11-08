@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import useSWR from 'swr';
+import useSWR from "swr";
 
-import { useCallback, useMemo } from 'react';
-import { UIArtifact } from '@/components/ai-elements/artifact';
+import { useCallback, useMemo } from "react";
+import { UIArtifact } from "@/components/ai-elements/artifact";
 
 export const initialArtifactData: UIArtifact = {
-  documentId: 'init',
-  content: '',
-  kind: 'text',
-  title: '',
-  status: 'idle',
+  documentId: "init",
+  content: "",
+  kind: "text",
+  title: "",
+  status: "idle",
   isVisible: false,
   boundingBox: {
     top: 0,
@@ -23,7 +23,7 @@ export const initialArtifactData: UIArtifact = {
 type Selector<T> = (state: UIArtifact) => T;
 
 export function useArtifactSelector<Selected>(selector: Selector<Selected>) {
-  const { data: localArtifact } = useSWR<UIArtifact>('artifact', null, {
+  const { data: localArtifact } = useSWR<UIArtifact>("artifact", null, {
     fallbackData: initialArtifactData,
   });
 
@@ -37,7 +37,7 @@ export function useArtifactSelector<Selected>(selector: Selector<Selected>) {
 
 export function useArtifact() {
   const { data: localArtifact, mutate: setLocalArtifact } = useSWR<UIArtifact>(
-    'artifact',
+    "artifact",
     null,
     {
       fallbackData: initialArtifactData,
@@ -54,7 +54,7 @@ export function useArtifact() {
       setLocalArtifact((currentArtifact) => {
         const artifactToUpdate = currentArtifact || initialArtifactData;
 
-        if (typeof updaterFn === 'function') {
+        if (typeof updaterFn === "function") {
           return updaterFn(artifactToUpdate);
         }
 

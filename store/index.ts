@@ -14,5 +14,5 @@ const customStore: StateCreator<Store> = (set) => ({
 export const useKey = create<Store>()(
   persist(customStore, {
     name: "store",
-  })
+  }),
 );

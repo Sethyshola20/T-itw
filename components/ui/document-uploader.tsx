@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   Form,
@@ -6,18 +6,21 @@ import {
   FormItem,
   FormControl,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { useState, useRef, useEffect } from "react";
 import { z } from "zod";
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { experimental_useObject as useObject } from '@ai-sdk/react';
-import { EngineeringDeliverableObjectType, engineeringDeliverableSchema } from '@/types';
-import { Loader } from '../ai-elements/loader';
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { experimental_useObject as useObject } from "@ai-sdk/react";
+import {
+  EngineeringDeliverableObjectType,
+  engineeringDeliverableSchema,
+} from "@/types";
+import { Loader } from "../ai-elements/loader";
 import { UploadCloud, LinkIcon } from "lucide-react";
 
 export default function DocumentUploader({
@@ -28,51 +31,55 @@ export default function DocumentUploader({
 }: {
   setDocumentId: React.Dispatch<React.SetStateAction<string | null>>;
   setShowUpload: React.Dispatch<React.SetStateAction<boolean>>;
-  setInitialMessage: React.Dispatch<React.SetStateAction<EngineeringDeliverableObjectType | undefined>>;
+  setInitialMessage: React.Dispatch<
+    React.SetStateAction<EngineeringDeliverableObjectType | undefined>
+  >;
   apiKey: string;
 }) {
   const [files, setFiles] = useState<FileList | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { object, submit, isLoading, stop } = useObject({
-    api: '/api/chat/files/upload',
+    api: "/api/chat/files/upload",
     schema: engineeringDeliverableSchema,
-    headers: { 'chat-api-key': apiKey },
+    headers: { "chat-api-key": apiKey },
   });
 
   const uploadSchema = z.object({
-    url: z.string().url().optional().or(z.literal('')),
+    url: z.string().url().optional().or(z.literal("")),
   });
 
   const form = useForm<z.infer<typeof uploadSchema>>({
     resolver: zodResolver(uploadSchema),
-    defaultValues: { url: '' },
+    defaultValues: { url: "" },
   });
 
   async function fileToBase64(file: File) {
     const arrayBuffer = await file.arrayBuffer();
-    return `data:${file.type};base64,${Buffer.from(arrayBuffer).toString('base64')}`;
+    return `data:${file.type};base64,${Buffer.from(arrayBuffer).toString("base64")}`;
   }
 
   async function handleUpload() {
-    if (!files && !form.getValues('url')) {
-      toast.error('Please select a file or provide a URL.');
+    if (!files && !form.getValues("url")) {
+      toast.error("Please select a file or provide a URL.");
       return;
     }
 
     const payload = {
-      url: form.getValues('url') || null,
+      url: form.getValues("url") || null,
       file: files?.length ? await fileToBase64(files[0]) : null,
     };
 
     try {
       submit(payload);
     } catch (error) {
-      toast.error(`Error uploading document: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(
+        `Error uploading document: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     } finally {
-      if (fileInputRef.current) fileInputRef.current.value = '';
+      if (fileInputRef.current) fileInputRef.current.value = "";
       setFiles(null);
-      form.reset({ url: '' });
+      form.reset({ url: "" });
     }
   }
 
@@ -81,7 +88,7 @@ export default function DocumentUploader({
       setDocumentId(object.documentId);
       setShowUpload(false);
       setInitialMessage(object as EngineeringDeliverableObjectType);
-      toast.success('Document processed successfully!');
+      toast.success("Document processed successfully!");
     }
   }, [object, setDocumentId, setShowUpload]);
 
@@ -93,7 +100,8 @@ export default function DocumentUploader({
             Document Upload
           </CardTitle>
           <p className="text-muted-foreground text-sm">
-            Upload your engineering document or provide a URL to start the AI analysis.
+            Upload your engineering document or provide a URL to start the AI
+            analysis.
           </p>
         </CardHeader>
         <CardContent>
@@ -105,7 +113,9 @@ export default function DocumentUploader({
               >
                 <UploadCloud className="w-8 h-8 text-muted-foreground group-hover:text-primary mb-2 transition-colors" />
                 <p className="text-sm text-muted-foreground group-hover:text-primary transition-colors">
-                  {files?.length ? files[0].name : "Click or drag a PDF file to upload"}
+                  {files?.length
+                    ? files[0].name
+                    : "Click or drag a PDF file to upload"}
                 </p>
                 <Input
                   type="file"
