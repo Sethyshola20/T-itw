@@ -11,6 +11,7 @@ import { saveChat, saveMessages } from "@/lib/db/queries";
 import { auth } from "@/lib/auth";
 import { ChatSDKError } from "@/lib/errors";
 import { chunkContent } from "@/lib/chunking";
+import { myProvider } from "@/lib/ai/providers";
 
 export async function POST(req: Request) {
   try {
@@ -49,7 +50,7 @@ export async function POST(req: Request) {
     const firstChunksText = chunks.slice(0, 5).join(" ");
 
     const structuredResult = streamObject({
-      model: google("gemini-2.5-flash"),
+      model: myProvider.languageModel('chat-model'),
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         {

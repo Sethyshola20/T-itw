@@ -17,6 +17,7 @@ import {
 import { generateUUID, convertToUIMessages } from "@/lib/utils";
 import type { VisibilityType } from "@/components/ui/visibility-selector";
 import { searchDocuments } from "@/lib/search";
+import { myProvider } from "@/lib/ai/providers";
 
 export async function POST(req: Request) {
   try {
@@ -86,7 +87,7 @@ export async function POST(req: Request) {
       const messageId = generateUUID();
 
       const notfoundStream = streamText({
-        model: google("gemini-2.5-flash"),
+        model: myProvider.languageModel('chat-model'),
         messages: modelMessages,
         onFinish: async () => {
           await saveMessages({
@@ -110,7 +111,7 @@ export async function POST(req: Request) {
     const ragSystemPrompt = `You are an expert assistant analyzing an engineering document. Answer the user's question ONLY based on the provided CONTEXT. Do not use external knowledge. If the context does not contain the answer, state that you cannot find the information in the provided document. Answer in clear plain text. Do not output JSON or code blocks unless explicitly requested.\n\nCONTEXT:\n${context}`;
 
     const stream = streamText({
-      model: google("gemini-2.5-flash"),
+      model: myProvider.languageModel('chat-model'),
       system: ragSystemPrompt,
       messages: modelMessages,
       onFinish: async ({ response }) => {
