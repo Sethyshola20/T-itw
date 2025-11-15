@@ -23,7 +23,7 @@ export default function DocumentChatPage() {
   const apiKey = useKey((state) => state.apiKey);
 
   return (
-    <div className="flex rounded bg-sidebar-accent flex-col items-center justify-center my-1.5 mr-1 border px-auto py-16 max-h-full h-full">
+    <div className="flex rounded bg-sidebar-accent flex-col items-center justify-center my-1.5 mr-1 border px-auto py-16 max-h-full w-full">
       {showUpload ? (
         <DocumentUploader
           setDocumentId={setDocumentId}
