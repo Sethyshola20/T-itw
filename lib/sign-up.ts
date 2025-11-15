@@ -9,6 +9,7 @@ export function useSignUp() {
 
     let loadingToastId: string | number;
 
+    console.log({authData})
     await authClient.signUp.email(
       {
         name: authData.name,
@@ -17,6 +18,7 @@ export function useSignUp() {
       },
       {
         onRequest: () => {
+          console.log('loading')
           loadingToastId = toast.loading("Connection...");
         },
         onSuccess: async () => {
@@ -24,6 +26,7 @@ export function useSignUp() {
           await createApiKey();
         },
         onError: (ctx) => {
+          console.log('error auth: ', ctx)
           toast.dismiss(loadingToastId);
           toast.error(ctx.error.message);
         },
