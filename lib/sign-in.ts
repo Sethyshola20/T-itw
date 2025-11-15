@@ -13,7 +13,7 @@ export function useSignIn() {
       {
         email: authData.email,
         password: authData.password,
-        callbackURL: "http://localhost:3000/chat",
+        callbackURL: "/chat",
       },
       {
         onRequest: (ctx) => {
