@@ -28,7 +28,7 @@ export default function Home() {
         </h1>
         <p className="text-lg text-slate-600 max-w-2xl mx-auto mb-10">
           An intelligent assistant that summarizes, compares, and reasons
-          through complex building documentation — so your engineering team can
+          through complex building documentation so your engineering team can
           move faster with confidence.
         </p>
 
