@@ -14,13 +14,31 @@ import {
   createStreamId,
   deleteChatById,
 } from "@/lib/db/queries";
-import { generateUUID, convertToUIMessages } from "@/lib/utils";
+import { generateUUID } from "@/lib/utils";
 import type { VisibilityType } from "@/components/ui/visibility-selector";
 import { searchDocuments } from "@/lib/search";
 import { myProvider } from "@/lib/ai/providers";
+import { buildRagPrompt } from "@/lib/ai/prompts";
+import { validateRequest } from "@/utils";
+import { z } from "zod";
+
+const chatSchema = z.object({
+  message: z.any(),
+  id: z.string(),
+  documentId: z.string(),
+  selectedVisibilityType: z.enum(["private", "public"]),
+});
 
 export async function POST(req: Request) {
   try {
+    const { data: validatedData, errors } = validateRequest(chatSchema, await req.json());
+
+    if (errors) {
+      return Response.json(
+        { error: "Invalid request", details: errors },
+        { status: 400 },
+      );
+    }
     const {
       message,
       id,
@@ -31,7 +49,7 @@ export async function POST(req: Request) {
       id: string;
       documentId: string;
       selectedVisibilityType: VisibilityType;
-    } = await req.json();
+    } = validatedData;
 
     const session = await auth.api.getSession({ headers: req.headers });
     const apiKey = req.headers.get("chat-api-key");
@@ -86,29 +104,33 @@ export async function POST(req: Request) {
         "I could not find relevant information for that question in this document.";
       const messageId = generateUUID();
 
-      const notfoundStream = streamText({
-        model: myProvider.languageModel('chat-model'),
-        messages: modelMessages,
-        onFinish: async () => {
-          await saveMessages({
-            messages: [
-              {
-                id: messageId,
-                role: "assistant",
-                parts: [{ type: "text", text: fallbackText }],
-                attachments: [],
-                createdAt: new Date(),
-                chatId: id,
-              },
-            ],
-          });
+      await saveMessages({
+        messages: [
+          {
+            id: messageId,
+            role: "assistant",
+            parts: [{ type: "text", text: fallbackText }],
+            attachments: [],
+            createdAt: new Date(),
+            chatId: id,
+          },
+        ],
+      });
+
+      const stream = new ReadableStream({
+        start(controller) {
+          // Vercel AI SDK wire format: 0:"text"
+          controller.enqueue(`0:${JSON.stringify(fallbackText)}\n`);
+          controller.close();
         },
       });
 
-      return notfoundStream.toUIMessageStreamResponse();
+      return new Response(stream, {
+        headers: { "Content-Type": "text/plain; charset=utf-8" },
+      });
     }
 
-    const ragSystemPrompt = `You are an expert assistant analyzing an engineering document. Answer the user's question ONLY based on the provided CONTEXT. Do not use external knowledge. If the context does not contain the answer, state that you cannot find the information in the provided document. Answer in clear plain text. Do not output JSON or code blocks unless explicitly requested.\n\nCONTEXT:\n${context}`;
+    const ragSystemPrompt = buildRagPrompt(context);
 
     const stream = streamText({
       model: myProvider.languageModel('chat-model'),
@@ -127,8 +149,8 @@ export async function POST(req: Request) {
               role: "assistant",
               parts: Array.isArray(assistantMessage.content)
                 ? assistantMessage.content.map((c) =>
-                    "text" in c ? { type: "text", text: c.text } : c,
-                  )
+                  "text" in c ? { type: "text", text: c.text } : c,
+                )
                 : [{ type: "text", text: assistantMessage.content as string }],
               attachments: [],
               createdAt: new Date(),

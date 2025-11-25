@@ -2,24 +2,36 @@ import { NextResponse } from "next/server";
 import { streamObject } from "ai";
 import { preparePdfFile } from "@/helper";
 import { engineeringDeliverableSchema } from "@/types";
-import { SYSTEM_PROMPT } from "@/lib/constants";
-import { storeEmbeddings } from "@/lib/embeding";
+import { extractionPrompt } from "@/lib/ai/prompts";
+import { storeEmbeddings } from "@/lib/embeddings";
 import { generateUUID } from "@/lib/utils";
-import { google } from "@ai-sdk/google";
 import { generateTitleFromUserMessage } from "@/app/chat/actions";
 import { saveChat, saveMessages } from "@/lib/db/queries";
 import { auth } from "@/lib/auth";
 import { ChatSDKError } from "@/lib/errors";
 import { chunkContent } from "@/lib/chunking";
 import { myProvider } from "@/lib/ai/providers";
+import { validateRequest } from "@/utils";
+import { z } from "zod";
 
+const uploadSchema = z.object({
+  file: z.instanceof(File).optional(),
+  url: z.string().optional(),
+});
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { file, url } = body as { file: File | null; url: string | null };
+    const { data: validatedData, errors } = validateRequest(uploadSchema, body);
+
+    if (errors) {
+      return NextResponse.json(
+        { error: "Invalid request", details: errors },
+        { status: 400 },
+      );
+    }
     const apiKey = req.headers.get("chat-api-key");
 
-    if (!file && !url) {
+    if (!validatedData.file && !validatedData.url) {
       return NextResponse.json(
         { error: "No file or URL provided" },
         { status: 400 },
@@ -42,7 +54,7 @@ export async function POST(req: Request) {
     const documentId = generateUUID();
 
     const { fileName, fileDataUrl, documentText } = await preparePdfFile(
-      file ? file : (url as string),
+      validatedData.file ? validatedData.file : (validatedData.url as string),
       documentId,
     );
 
@@ -52,7 +64,7 @@ export async function POST(req: Request) {
     const structuredResult = streamObject({
       model: myProvider.languageModel('chat-model'),
       messages: [
-        { role: "system", content: SYSTEM_PROMPT },
+        { role: "system", content: extractionPrompt },
         {
           role: "user",
           content: [

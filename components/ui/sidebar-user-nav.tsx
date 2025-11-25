@@ -3,6 +3,11 @@
 import { ChevronUp } from "lucide-react";
 import { useTheme } from "next-themes";
 import {
+    IconLogout,
+    IconMoonStars,
+    IconSettings,
+} from "@tabler/icons-react"
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -68,34 +73,21 @@ export function SidebarUserNav({ user }: { user: User | undefined }) {
             side="top"
             className="w-[--radix-popper-anchor-width]"
           >
-            <DropdownMenuItem
-              data-testid="user-nav-item-theme"
-              className="cursor-pointer"
-              onSelect={() =>
-                setTheme(resolvedTheme === "light" ? "dark" : "light")
-              }
-            >
-              {`Toggle ${resolvedTheme === "light" ? "dark" : "light"} mode`}
-            </DropdownMenuItem>
+             <DropdownMenuItem
+                            data-testid="user-nav-item-theme"
+                            className="cursor-pointer"
+                            onSelect={() =>
+                                setTheme(resolvedTheme === "light" ? "dark" : "light")
+                            }
+                        >
+                            <IconMoonStars />
+                            {`Toggle ${resolvedTheme === "light" ? "dark" : "light"} mode`}
+                        </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild data-testid="user-nav-item-auth">
-              <button
-                type="button"
-                className="w-full cursor-pointer"
-                onClick={() => {
-                  if (status === "loading") {
-                    toast.error(
-                      "Checking authentication status, please try again!",
-                    );
-
-                    return;
-                  }
-                  SignOut();
-                }}
-              >
-                {"Sign out"}
-              </button>
-            </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => SignOut()} className="cursor-pointer focus:text-destructive">
+                            <IconLogout />
+                            <span>Log out</span>
+                        </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>

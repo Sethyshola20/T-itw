@@ -7,7 +7,6 @@ export async function POST(request: NextRequest) {
       headers: request.headers,
     });
 
-    console.log('creating an api key')
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

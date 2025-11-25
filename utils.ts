@@ -3,6 +3,7 @@ import {
   type ResumableStreamContext,
 } from "resumable-stream";
 import { after } from "next/server";
+import { ZodError, ZodSchema } from "zod";
 
 let globalStreamContext: ResumableStreamContext | null = null;
 
@@ -24,4 +25,22 @@ export function getStreamContext() {
   }
 
   return globalStreamContext;
+}
+
+export function validateRequest<T>(schema: ZodSchema<T>, data: any) {
+  try {
+    const validatedData = schema.parse(data);
+    return { data: validatedData, errors: null };
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return {
+        data: null,
+        errors: {
+          message: "Validation failed",
+          details: error.flatten().fieldErrors
+        }
+      };
+    }
+    throw error;
+  }
 }

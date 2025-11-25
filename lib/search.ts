@@ -1,5 +1,5 @@
 import { Pinecone } from "@pinecone-database/pinecone";
-import { cosineSimilarity } from "ai";
+
 import { generateEmbedding } from "./embeddings";
 
 const pc = new Pinecone({
@@ -19,20 +19,13 @@ export async function searchDocuments(
 
   const results = await index.query({
     vector: embedding,
-    topK: topK * 2,
+    topK,
     filter: { documentId },
     includeMetadata: true,
-    includeValues: true,
+    includeValues: false,
   });
 
-  const scoredChunks = (results.matches ?? [])
-    .map((match) => ({
-      similarity: cosineSimilarity(embedding, match.values!),
-      chunk: match.metadata,
-    }))
-    .filter((c) => c.similarity >= threshold)
-    .sort((a, b) => b.similarity - a.similarity)
-    .slice(0, topK);
-
-  return scoredChunks.map((c) => c.chunk?.textPreview || "");
+  return (results.matches ?? [])
+    .filter((match) => (match.score ?? 0) >= threshold)
+    .map((match) => match.metadata?.textPreview || "");
 }
