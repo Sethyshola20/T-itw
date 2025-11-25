@@ -1,7 +1,4 @@
-import { LanguageModel, smoothStream, streamText } from "ai";
-
-import { updateDocumentPrompt } from "@/lib/ai/prompts";
-import { openai } from "@ai-sdk/openai";
+import { smoothStream, streamText } from "ai";
 import { myProvider } from "@/lib/ai/providers";
 import { createDocumentHandler } from "@/lib/artifiacts/server";
 
@@ -39,7 +36,8 @@ export const textDocumentHandler = createDocumentHandler<"text">({
 
     const { fullStream } = streamText({
       model: myProvider.languageModel("chat-model"),
-      system: updateDocumentPrompt(document.content, "text"),
+      system:
+        "Update the given document with the given description. Markdown is supported. Use headings wherever appropriate.",
       experimental_transform: smoothStream({ chunking: "word" }),
       prompt: description,
       providerOptions: {
