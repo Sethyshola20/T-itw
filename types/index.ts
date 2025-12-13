@@ -9,20 +9,20 @@ export const engineeringDeliverableSchema = z.object({
   clientName: z.string(),
   engineeringFirm: z.string(),
   documentType: z.enum([
-    "Notice Technique",
-    "Pack ELEC",
-    "Analyse Offre",
-    "Comparaison ACT",
-    "Go/No Go Rapport",
-    "Autre",
+    "Technical Notice",
+    "Electrical Package",
+    "Bid Analysis",
+    "ACT Comparison",
+    "Go / No-Go Report",
+    "Other",
   ]),
   submissionDate: z.string(),
   designPhase: z.enum([
-    "Étude préliminaire",
-    "Avant-projet",
-    "Projet",
-    "Exécution",
-    "As-built",
+    "Preliminary Study",
+    "Preliminary Design",
+    "Detailed Design",
+    "Execution",
+    "As-Built",
   ]),
   scopeDescription: z.string(),
   keyMetrics: z
@@ -30,7 +30,7 @@ export const engineeringDeliverableSchema = z.object({
       totalCostEstimate: z.number().optional(),
       timelineWeeks: z.number().optional(),
       complianceStatus: z
-        .enum(["Conforme", "Non conforme", "À vérifier"])
+        .enum(["Compliant", "Non-compliant", "To be verified"])
         .optional(),
     })
     .optional(),
@@ -40,7 +40,7 @@ export const engineeringDeliverableSchema = z.object({
         deliverableName: z.string(),
         deliverableType: z.string(),
         dueDate: z.string().optional(),
-        status: z.enum(["En attente", "Livré", "Validé", "Refusé"]),
+        status: z.enum(["Pending", "Delivered", "Approved", "Rejected"]),
       }),
     )
     .optional(),
@@ -60,7 +60,7 @@ export type EngineeringDeliverableObjectType = z.infer<
   typeof engineeringDeliverableSchema
 >;
 
-// AUTH
+// AUTHENTICATION
 
 export const signinSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
@@ -68,6 +68,7 @@ export const signinSchema = z.object({
     .string()
     .min(8, { message: "Password must be at least 8 characters" }),
 });
+
 export const signupSchema = z
   .object({
     name: z.string().max(20),
@@ -94,13 +95,14 @@ export const messageMetadataSchema = z.object({
 
 export type MessageMetadata = z.infer<typeof messageMetadataSchema>;
 
-// TO CHANGE
-type createDocumentTool = InferUITool<ReturnType<any>>;
-type updateDocumentTool = InferUITool<ReturnType<any>>;
+// TO UPDATE
+
+type CreateDocumentTool = InferUITool<ReturnType<any>>;
+type UpdateDocumentTool = InferUITool<ReturnType<any>>;
 
 export type ChatTools = {
-  createDocument: createDocumentTool;
-  updateDocument: updateDocumentTool;
+  createDocument: CreateDocumentTool;
+  updateDocument: UpdateDocumentTool;
 };
 
 export type CustomUIDataTypes = {

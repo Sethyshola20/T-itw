@@ -32,6 +32,7 @@ export function validateRequest<T>(schema: ZodSchema<T>, data: any) {
     const validatedData = schema.parse(data);
     return { data: validatedData, errors: null };
   } catch (error) {
+    console.log({ zodError: error });
     if (error instanceof ZodError) {
       return {
         data: null,

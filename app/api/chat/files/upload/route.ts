@@ -18,20 +18,21 @@ const uploadSchema = z.object({
   file: z.instanceof(File).optional(),
   url: z.string().optional(),
 });
+
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { data: validatedData, errors } = validateRequest(uploadSchema, body);
+    const { file, url } = await req.json();
+    // const { data: validatedData, errors } = validateRequest(uploadSchema, body);
 
-    if (errors) {
+    if (!file && !url) {
       return NextResponse.json(
-        { error: "Invalid request", details: errors },
+        { error: "No file or URL provided" },
         { status: 400 },
       );
     }
     const apiKey = req.headers.get("chat-api-key");
 
-    if (!validatedData.file && !validatedData.url) {
+    if (!file && !url) {
       return NextResponse.json(
         { error: "No file or URL provided" },
         { status: 400 },
@@ -54,12 +55,16 @@ export async function POST(req: Request) {
     const documentId = generateUUID();
 
     const { fileName, fileDataUrl, documentText } = await preparePdfFile(
-      validatedData.file ? validatedData.file : (validatedData.url as string),
+      file ? file : url,
       documentId,
     );
 
+    console.log({ fileName, fileDataUrl, documentText })
+
     const chunks = await chunkContent(documentText);
+
     const firstChunksText = chunks.slice(0, 5).join(" ");
+    console.log({ firstChunksText })
 
     const structuredResult = streamObject({
       model: myProvider.languageModel('chat-model'),

@@ -32,9 +32,6 @@ export default async function Layout({
         <SidebarProvider defaultOpen={true}>
           <AppSidebar />
           <SidebarInset className="flex flex-row gap-1 min-w-0 w-0 bg-sidebar">
-            <div className="py-1.5">
-              <SidebarToggle />
-            </div>
             {children}
             <Toaster />
           </SidebarInset>
